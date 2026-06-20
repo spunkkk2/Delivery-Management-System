@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}
+
+Login
+
+{% endblock %}
+
+
+
+{% block extra_css %}
+
+
+
+<style>
+
+
+
+.login-page-card{
+
+
+
+background:#111827;
+
+
+
+color:#f9fafb;
+
+
+
+box-shadow:0 20px 40px rgba(0,0,0,0.45);
+
+}
+
+
+
+.login-page-card .form-label{
+
+
+
+color:#e5e7eb;
+
+}
+
+
+
+.login-page-card .input-group-text{
+
+
+
+background:#1f2937;
+
+
+
+border-color:#374151;
+
+
+
+color:#d1d5db;
+
+}
+
+
+
+.login-page-card .form-control{
+
+
+
+background:#1f2937;
+
+
+
+border-color:#374151;
+
+
+
+color:#f9fafb;
+
+}
+
+
+
+.login-page-card .form-control:focus{
+
+
+
+background:#1f2937;
+
+
+
+border-color:#2563eb;
+
+
+
+color:#f9fafb;
+
+
+
+box-shadow:0 0 0 0.25rem rgba(37,99,235,0.25);
+
+}
+
+
+
+.login-page-subtitle{
+
+
+
+color:#9ca3af;
+
+}
+
+
+
+</style>
+
+
+
+{% endblock %}
+
+
+
+{% block content %}
+
+
+
+<div class="container-fluid">
+
+
+
+<div class="row justify-content-center align-items-center"
+
+     style="min-height:85vh;">
+
+
+
+<div class="col-lg-4 col-md-6">
+
+
+
+<div class="card dashboard-card border-0 login-page-card">
+
+
+
+<div class="card-body p-5">
+
+
+
+<div class="text-center mb-4">
+
+
+
+<img
+
+src="{{ url_for('static', filename='images/login-logo.png') }}"
+
+alt="مهرة"
+
+style="max-width:220px;width:100%;height:auto;">
+
+
+
+<p class="login-page-subtitle mt-4 mb-0">
+
+
+
+Login To Continue
+
+
+
+</p>
+
+
+
+</div>
+
+
+
+<form method="POST">
+
+
+
+<div class="mb-3">
+
+
+
+<label class="form-label">
+
+
+
+Username
+
+
+
+</label>
+
+
+
+<div class="input-group">
+
+
+
+<span class="input-group-text">
+
+
+
+<i class="fa-solid fa-user"></i>
+
+
+
+</span>
+
+
+
+<input
+
+type="text"
+
+name="username"
+
+class="form-control"
+
+required>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+<div class="mb-4">
+
+
+
+<label class="form-label">
+
+
+
+Password
+
+
+
+</label>
+
+
+
+<div class="input-group">
+
+
+
+<span class="input-group-text">
+
+
+
+<i class="fa-solid fa-lock"></i>
+
+
+
+</span>
+
+
+
+<input
+
+type="password"
+
+name="password"
+
+class="form-control"
+
+required>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+<button
+
+type="submit"
+
+class="btn btn-primary w-100 btn-lg">
+
+
+
+<i class="fa-solid fa-right-to-bracket"></i>
+
+
+
+Login
+
+
+
+</button>
+
+
+
+</form>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+{% endblock %}
+

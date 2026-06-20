@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}
+إدارة المحلات
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+<div class="col-lg-3">
+
+    <div class="card dashboard-card">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-store"></i>
+
+                إضافة محل
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form
+                method="POST"
+                action="{{ url_for('operator.create_shop') }}">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        اسم المحل
+
+                    </label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        class="form-control"
+                        required>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        الهاتف
+
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="phone"
+                        class="form-control phone-input"
+                        inputmode="numeric"
+                        pattern="[0-9]{10}"
+                        minlength="10"
+                        maxlength="10"
+                        title="يجب أن يكون الهاتف 10 أرقام">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        المنطقة
+
+                    </label>
+
+                    <select
+                        name="place_id"
+                        class="form-select"
+                        required>
+
+                        <option value="">
+
+                            اختر المنطقة
+
+                        </option>
+
+                        {% for place in places %}
+
+                        <option value="{{ place.id }}">
+
+                            {{ place.name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        الموقع التفصيلي
+
+                    </label>
+
+                    <textarea
+                        name="location_details"
+                        rows="2"
+                        class="form-control"></textarea>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        ملاحظات
+
+                    </label>
+
+                    <textarea
+                        name="notes"
+                        rows="3"
+                        class="form-control"></textarea>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-success w-100">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    إضافة المحل
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="col-lg-9">
+
+    <div class="table-card">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <h4>
+
+                <i class="fa-solid fa-store"></i>
+
+                المحلات
+
+            </h4>
+
+            <input
+                type="text"
+                id="shopSearch"
+                class="form-control"
+                style="max-width:300px"
+                placeholder="بحث في المحلات">
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table
+                class="table table-hover align-middle"
+                id="shopsTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>الرقم</th>
+                        <th>الاسم</th>
+                        <th>المنطقة</th>
+                        <th>الموقع</th>
+                        <th>الهاتف</th>
+                        <th>إجراءات</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for shop in shops %}
+
+                    <tr>
+
+                        <td>
+
+                            #{{ shop.id }}
+
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                {{ shop.name }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            {% if shop.place %}
+
+                            {{ shop.place.name }}
+
+                            {% else %}
+
+                            -
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {{ shop.location_details or '-' }}
+
+                        </td>
+
+                        <td>
+
+                            {{ shop.phone or '-' }}
+
+                        </td>
+
+                            <td>
+
+        <button
+            class="btn btn-sm btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#editShop{{ shop.id }}">
+
+            <i class="fa-solid fa-pen"></i>
+
+        </button>
+
+        <a
+            href="{{ url_for('operator.delete_shop', shop_id=shop.id) }}"
+            class="btn btn-sm btn-danger"
+            onclick="return confirm('هل تريد حذف هذا المحل؟')">
+
+            <i class="fa-solid fa-trash"></i>
+
+        </a>
+
+        </td>
+
+                    </tr>
+                    <div
+    class="modal fade"
+    id="editShop{{ shop.id }}"
+    tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('operator.edit_shop', shop_id=shop.id) }}">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+
+                        تعديل المحل
+
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <label>
+
+                            اسم المحل
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ shop.name }}"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>
+
+                            الهاتف
+
+                        </label>
+
+                        <input
+                            type="tel"
+                            name="phone"
+                            value="{{ shop.phone }}"
+                            class="form-control phone-input"
+                            inputmode="numeric"
+                            pattern="[0-9]{10}"
+                            minlength="10"
+                            maxlength="10"
+                            title="يجب أن يكون الهاتف 10 أرقام">
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>
+
+                            المنطقة
+
+                        </label>
+
+                        <select
+                            name="place_id"
+                            class="form-select"
+                            required>
+
+                            {% for place in places %}
+
+                            <option
+                                value="{{ place.id }}"
+                                {% if shop.place_id == place.id %}selected{% endif %}>
+
+                                {{ place.name }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>
+
+                            الموقع التفصيلي
+
+                        </label>
+
+                        <textarea
+                            name="location_details"
+                            rows="3"
+                            class="form-control">{{ shop.location_details }}</textarea>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>
+
+                            ملاحظات
+
+                        </label>
+
+                        <textarea
+                            name="notes"
+                            rows="4"
+                            class="form-control">{{ shop.notes }}</textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success">
+
+                        حفظ التغييرات
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+                    {% endfor %}
+
+                    {% if not shops %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="text-center py-5">
+
+                            <i class="fa-solid fa-store-slash fa-3x text-muted"></i>
+
+                            <br><br>
+
+                            لا توجد محلات
+
+                        </td>
+
+                    </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+document
+.getElementById(
+"shopSearch"
+)
+.addEventListener(
+"keyup",
+function(){
+
+let value =
+this.value
+.toLowerCase();
+
+let rows =
+document.querySelectorAll(
+"#shopsTable tbody tr"
+);
+
+rows.forEach(row => {
+
+row.style.display =
+row.innerText
+.toLowerCase()
+.includes(value)
+? ""
+: "none";
+
+});
+
+});
+
+</script>
+
+{% endblock %}

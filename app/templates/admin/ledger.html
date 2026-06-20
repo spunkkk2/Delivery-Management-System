@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}
+سجل حساب السائق
+{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+
+<div class="col-lg-8">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<div class="d-flex justify-content-between align-items-center">
+
+<div>
+
+<h3 class="mb-1">
+
+<i class="fa-solid fa-book"></i>
+
+سجل حساب السائق
+
+</h3>
+
+<p class="text-muted mb-0">
+
+{{ driver.full_name }}
+
+</p>
+
+</div>
+
+<div>
+
+{% if driver.balance > 0 %}
+
+<span class="badge bg-success fs-5">
+
++{{ "%.2f"|format(driver.balance) }} د.أ
+
+</span>
+
+{% elif driver.balance < 0 %}
+
+<span class="badge bg-danger fs-5">
+
+{{ "%.2f"|format(driver.balance) }} د.أ
+
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary fs-5">
+
+0.00 د.أ
+
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<h5>
+
+ملخص مالي
+
+</h5>
+
+<hr>
+
+<div class="mb-3">
+
+<strong>
+
+اسم المستخدم
+
+</strong>
+
+<br>
+
+{{ driver.username }}
+
+</div>
+
+<div class="mb-3">
+
+<strong>
+
+الحالة
+
+</strong>
+
+<br>
+
+{% if driver.status == "Available" %}
+متاح
+{% elif driver.status == "Busy" %}
+مشغول
+{% else %}
+غير متصل
+{% endif %}
+
+</div>
+
+<div class="mb-3">
+
+<strong>
+
+الرصيد الحالي
+
+</strong>
+
+<br>
+
+{% if driver.balance > 0 %}
+
+<span class="text-success">
+
+الشركة مدينة للسائق
+
+</span>
+
+{% elif driver.balance < 0 %}
+
+<span class="text-danger">
+
+السائق مدين للشركة
+
+</span>
+
+{% else %}
+
+<span class="text-secondary">
+
+مسدّد
+
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="col-12">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h4>
+
+معاملات السجل
+
+</h4>
+
+<span class="badge bg-primary">
+
+{{ entries|length }} عملية
+
+</span>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>التاريخ</th>
+
+<th>الطلب</th>
+
+<th>نوع العملية</th>
+
+<th>المبلغ</th>
+
+<th>الرصيد بعد العملية</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for entry in entries %}
+
+<tr>
+
+<td>
+
+{{ entry.id }}
+
+</td>
+
+<td>
+
+{{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}
+
+</td>
+
+<td>
+
+{% if entry.order %}
+
+<a
+href="{{ url_for('admin.orders') }}"
+class="text-decoration-none">
+
+#{{ entry.order.id }}
+
+</a>
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if entry.transaction_type == "Paid Commission" %}
+
+<span class="badge bg-success">
+
+عمولة طلب مدفوع
+
+</span>
+
+{% elif entry.transaction_type == "Cash Commission" %}
+
+<span class="badge bg-warning text-dark">
+
+عمولة طلب نقدي
+
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary">
+
+{{ entry.transaction_type }}
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if entry.amount > 0 %}
+
+<span class="text-success fw-bold">
+
++{{ "%.2f"|format(entry.amount) }}
+
+</span>
+
+{% else %}
+
+<span class="text-danger fw-bold">
+
+{{ "%.2f"|format(entry.amount) }}
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if entry.balance_after > 0 %}
+
+<span class="badge bg-success">
+
++{{ "%.2f"|format(entry.balance_after) }}
+
+</span>
+
+{% elif entry.balance_after < 0 %}
+
+<span class="badge bg-danger">
+
+{{ "%.2f"|format(entry.balance_after) }}
+
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary">
+
+0.00
+
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+{% if not entries %}
+
+<tr>
+
+<td colspan="6" class="text-center py-5">
+
+<i class="fa-solid fa-book-open fa-3x mb-3 text-muted"></i>
+
+<br>
+
+لا توجد معاملات في السجل
+
+</td>
+
+</tr>
+
+{% endif %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row mt-4">
+
+<div class="col-12">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<h5>
+
+مرجع المحاسبة
+
+</h5>
+
+<hr>
+
+<div class="row">
+
+<div class="col-md-6">
+
+<div class="alert alert-success">
+
+<h6>
+
+طلب مدفوع
+
+</h6>
+
+الرصيد += رسوم التوصيل
+
+<br><br>
+
+مثال:
+
+<br>
+
+الرصيد = 10
+
+<br>
+
+رسوم التوصيل = 3
+
+<br>
+
+النتيجة = 13
+
+</div>
+
+</div>
+
+<div class="col-md-6">
+
+<div class="alert alert-warning">
+
+<h6>
+
+طلب نقدي
+
+</h6>
+
+الرصيد -= رسوم التوصيل
+
+<br><br>
+
+مثال:
+
+<br>
+
+الرصيد = 10
+
+<br>
+
+رسوم التوصيل = 3
+
+<br>
+
+النتيجة = 7
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

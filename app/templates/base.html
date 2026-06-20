@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="{% if is_arabic_rtl %}ar{% else %}en{% endif %}" dir="{% if is_arabic_rtl %}rtl{% else %}ltr{% endif %}" data-bs-theme="{% if is_login_page %}dark{% else %}light{% endif %}">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="مهرة">
+<meta name="theme-color" content="#000000">
+<meta name="application-name" content="مهرة">
+
+<link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/app-icon.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/app-icon.png') }}">
+
+<title>
+{% block title %}
+{% if is_arabic_rtl %}مهرة{% else %}Mahra{% endif %}
+{% endblock %}
+</title>
+
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+
+<link
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+rel="stylesheet">
+
+<link
+href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
+{% if is_operator_section %}
+<link
+href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css"
+rel="stylesheet">
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root{
+
+--sidebar-width:260px;
+
+--primary:#2563eb;
+--success:#16a34a;
+--danger:#dc2626;
+--warning:#d97706;
+
+}
+
+*{
+font-family:'Cairo',sans-serif;
+}
+
+body{
+overflow-x:hidden;
+background:#f5f7fb;
+}
+
+.sidebar{
+
+position:fixed;
+
+left:0;
+top:0;
+
+width:var(--sidebar-width);
+
+height:100vh;
+
+background:#111827;
+
+z-index:1000;
+
+overflow-y:auto;
+}
+
+.sidebar-header{
+
+padding:20px;
+
+border-bottom:1px solid rgba(
+255,
+255,
+255,
+0.1
+);
+
+}
+
+.sidebar-header h4{
+
+color:white;
+
+margin:0;
+}
+
+.sidebar-header .brand-logo{
+
+display:block;
+
+text-align:center;
+}
+
+.sidebar-header .brand-logo img{
+
+max-width:100%;
+
+height:auto;
+
+max-height:90px;
+
+border-radius:8px;
+}
+
+.sidebar .nav-link{
+
+color:#d1d5db;
+
+padding:12px 20px;
+
+border-radius:10px;
+
+margin:5px 10px;
+
+transition:.25s;
+}
+
+.sidebar .nav-link:hover{
+
+background:#1f2937;
+
+color:white;
+}
+
+.sidebar .nav-link.active{
+
+background:var(--primary);
+
+color:white;
+}
+
+.main-content{
+
+margin-left:var(--sidebar-width);
+
+min-height:100vh;
+}
+
+[dir="rtl"] .sidebar{
+
+left:auto;
+right:0;
+}
+
+[dir="rtl"] .main-content{
+
+margin-left:0;
+margin-right:var(--sidebar-width);
+}
+
+.topbar{
+
+background:white;
+
+padding:15px 25px;
+
+box-shadow:
+0 1px 4px rgba(
+0,
+0,
+0,
+0.08
+);
+
+}
+
+.main-content.login-layout{
+
+margin-left:0;
+
+margin-right:0;
+
+min-height:100vh;
+
+background:#000000;
+}
+
+.main-content.login-layout .content-wrapper{
+
+background:#000000;
+
+min-height:100vh;
+}
+
+[dir="rtl"] .main-content.login-layout{
+
+margin-right:0;
+}
+
+@media (display-mode: standalone){
+
+body{
+
+padding-top:env(safe-area-inset-top);
+
+padding-bottom:env(safe-area-inset-bottom);
+
+padding-left:env(safe-area-inset-left);
+
+padding-right:env(safe-area-inset-right);
+}
+
+}
+
+.dashboard-card{
+
+border:none;
+
+border-radius:20px;
+
+box-shadow:
+0 10px 25px rgba(
+0,
+0,
+0,
+0.06
+);
+
+transition:.25s;
+}
+
+.dashboard-card:hover{
+
+transform:
+translateY(-3px);
+}
+
+.stat-icon{
+
+width:60px;
+
+height:60px;
+
+border-radius:15px;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+font-size:24px;
+}
+
+.content-wrapper{
+
+padding:25px;
+}
+
+.table-card{
+
+background:white;
+
+border-radius:20px;
+
+padding:20px;
+
+box-shadow:
+0 10px 25px rgba(
+0,
+0,
+0,
+0.05
+);
+}
+
+.chart-card{
+
+background:white;
+
+border-radius:20px;
+
+padding:20px;
+
+box-shadow:
+0 10px 25px rgba(
+0,
+0,
+0,
+0.05
+);
+}
+
+.mobile-toggle{
+
+display:none;
+}
+
+.language-btn{
+
+min-width:80px;
+}
+
+@media(max-width:991px){
+
+.sidebar{
+
+left:-260px;
+
+transition:.3s;
+}
+
+.sidebar.show{
+
+left:0;
+}
+
+[dir="rtl"] .sidebar{
+
+right:-260px;
+left:auto;
+}
+
+[dir="rtl"] .sidebar.show{
+
+right:0;
+}
+
+.main-content{
+
+margin-left:0;
+}
+
+[dir="rtl"] .main-content{
+
+margin-right:0;
+}
+
+.mobile-toggle{
+
+display:inline-block;
+}
+
+}
+
+[data-bs-theme="dark"] body{
+
+background:#0f172a;
+}
+
+[data-bs-theme="dark"] .topbar{
+
+background:#111827;
+}
+
+[data-bs-theme="dark"] .dashboard-card,
+[data-bs-theme="dark"] .table-card,
+[data-bs-theme="dark"] .chart-card{
+
+background:#1f2937;
+
+color:white;
+}
+
+[data-bs-theme="dark"] .table{
+
+color:white;
+}
+
+.driver-order-card{
+    transition:.3s;
+    border-radius:18px;
+}
+
+/* LIGHT MODE */
+
+[data-bs-theme="light"] .driver-order-card{
+    background:#1f2937;
+    color:white;
+}
+
+[data-bs-theme="light"] .driver-order-card .card-header{
+    background:#111827 !important;
+    color:white !important;
+}
+
+/* DARK MODE */
+
+[data-bs-theme="dark"] .driver-order-card{
+    background:#ffffff;
+    color:#111827;
+}
+
+[data-bs-theme="dark"] .driver-order-card .card-header{
+    background:#2563eb !important;
+    color:white !important;
+}
+
+</style>
+
+{% if is_operator_section %}
+<style>
+
+.ts-dropdown{
+z-index:2000;
+}
+
+[dir="rtl"] .ts-wrapper.single .ts-control{
+padding-right:0.75rem;
+padding-left:2rem;
+}
+
+[data-bs-theme="dark"] .ts-wrapper .ts-control,
+[data-bs-theme="dark"] .ts-wrapper .ts-control input,
+[data-bs-theme="dark"] .ts-wrapper .item{
+color:white !important;
+}
+
+[data-bs-theme="dark"] .ts-wrapper.single .ts-control{
+background-color:#212529;
+border-color:#495057;
+}
+
+[data-bs-theme="dark"] .ts-dropdown{
+background:#1f2937;
+border-color:#374151;
+color:white;
+}
+
+[data-bs-theme="dark"] .ts-dropdown .option,
+[data-bs-theme="dark"] .ts-dropdown .no-results,
+[data-bs-theme="dark"] .ts-dropdown .optgroup-header{
+color:white;
+}
+
+[data-bs-theme="dark"] .ts-dropdown .option.active{
+background-color:var(--primary);
+color:white;
+}
+
+[data-bs-theme="dark"] .ts-dropdown .option:hover,
+[data-bs-theme="dark"] .ts-dropdown .option.active:hover{
+background-color:#374151;
+color:white;
+}
+
+[data-bs-theme="dark"] .ts-dropdown .dropdown-input{
+color:white;
+background:#111827;
+border-color:#374151;
+}
+
+[data-bs-theme="dark"] .ts-wrapper .clear-button{
+color:white;
+}
+
+</style>
+{% endif %}
+
+{% block extra_css %}
+{% endblock %}
+
+</head>
+
+<body>
+
+{% if not is_login_page %}
+
+<div
+class="sidebar"
+id="sidebar">
+
+<div class="sidebar-header">
+
+<a class="brand-logo" href="{% if user %}{% if user.role == 'driver' %}{{ url_for('driver.dashboard') }}{% elif user.role == 'operator' %}{{ url_for('operator.dashboard') }}{% else %}{{ url_for('admin.dashboard') }}{% endif %}{% else %}{{ url_for('auth.login') }}{% endif %}">
+
+<img
+src="{{ url_for('static', filename='images/logo.png') }}"
+alt="مهرة">
+
+</a>
+
+</div>
+
+<ul class="nav flex-column p-2">
+
+{% if user %}
+
+{% if user.role == 'admin' and not is_operator_section %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.dashboard' %} active{% endif %}"
+href="{{ url_for('admin.dashboard') }}">
+
+<i class="fa-solid fa-chart-line"></i>
+
+الرئيسية
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.users' %} active{% endif %}"
+href="{{ url_for('admin.users') }}">
+
+<i class="fa-solid fa-users"></i>
+
+المستخدمون
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.orders' %} active{% endif %}"
+href="{{ url_for('admin.orders') }}">
+
+<i class="fa-solid fa-box"></i>
+
+الطلبات
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.shops' %} active{% endif %}"
+href="{{ url_for('admin.shops') }}">
+
+<i class="fa-solid fa-store"></i>
+
+المحلات
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.drivers' %} active{% endif %}"
+href="{{ url_for('admin.drivers') }}">
+
+<i class="fa-solid fa-truck"></i>
+
+السائقون
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.balances' or request.endpoint == 'admin.ledger' %} active{% endif %}"
+href="{{ url_for('admin.balances') }}">
+
+<i class="fa-solid fa-money-bill"></i>
+
+الأرصدة
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint in ['admin.accounting', 'admin.add_expense', 'admin.delete_expense'] %} active{% endif %}"
+href="{{ url_for('admin.accounting') }}">
+
+<i class="fa-solid fa-calculator"></i>
+
+المحاسبة
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'admin.logs' %} active{% endif %}"
+href="{{ url_for('admin.logs') }}">
+
+<i class="fa-solid fa-list"></i>
+
+السجل
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link"
+href="{{ url_for('operator.dashboard') }}">
+
+<i class="fa-solid fa-truck-fast"></i>
+
+لوحة المشغّل
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'operator' or is_operator_section %}
+
+{% if user.role == 'admin' or 'dashboard' in operator_permissions %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'operator.dashboard' %} active{% endif %}"
+href="{{ url_for('operator.dashboard') }}">
+
+<i class="fa-solid fa-house"></i>
+
+الرئيسية
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'admin' or 'orders' in operator_permissions %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'operator.orders' %} active{% endif %}"
+href="{{ url_for('operator.orders') }}">
+
+<i class="fa-solid fa-box"></i>
+
+الطلبات
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'admin' or 'drivers' in operator_permissions %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'operator.drivers' %} active{% endif %}"
+href="{{ url_for('operator.drivers') }}">
+
+<i class="fa-solid fa-truck"></i>
+
+السائقون
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'admin' or 'places' in operator_permissions %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'operator.places' %} active{% endif %}"
+href="{{ url_for('operator.places') }}">
+
+<i class="fa-solid fa-location-dot"></i>
+
+المناطق
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'admin' or 'shops' in operator_permissions %}
+
+<li>
+<a
+class="nav-link{% if request.endpoint == 'operator.shops' %} active{% endif %}"
+href="{{ url_for('operator.shops') }}">
+
+<i class="fa-solid fa-store"></i>
+
+المحلات
+
+</a>
+</li>
+
+{% endif %}
+
+{% if user.role == 'admin' and is_operator_section %}
+
+<li>
+<a
+class="nav-link"
+href="{{ url_for('admin.dashboard') }}">
+
+<i class="fa-solid fa-shield-halved"></i>
+
+لوحة الإدارة
+
+</a>
+</li>
+
+{% endif %}
+
+{% endif %}
+
+{% if user.role == 'driver' %}
+
+<li>
+<a
+class="nav-link"
+href="{{ url_for('driver.dashboard') }}">
+
+<i class="fa-solid fa-house"></i>
+
+الرئيسية
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link"
+href="{{ url_for('driver.accounts') }}">
+
+<i class="fa-solid fa-wallet"></i>
+
+حساباتي
+
+</a>
+</li>
+
+{% endif %}
+
+
+<li>
+
+<a
+class="nav-link text-danger"
+href="{{ url_for('auth.logout') }}">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+
+{% if is_arabic_rtl %}
+تسجيل الخروج
+{% else %}
+Logout
+{% endif %}
+
+</a>
+
+</li>
+
+{% endif %}
+
+</ul>
+
+</div>
+
+{% endif %}
+
+<div class="main-content{% if is_login_page %} login-layout{% endif %}">
+
+{% if not is_login_page %}
+
+<div class="topbar">
+
+<div class="d-flex justify-content-between align-items-center">
+
+<div>
+
+<button
+class="btn btn-outline-secondary mobile-toggle"
+onclick="toggleSidebar()">
+
+<i class="fa-solid fa-bars"></i>
+
+</button>
+
+</div>
+
+<div
+class="d-flex gap-2 align-items-center">
+
+{% if not is_arabic_rtl %}
+<button
+class="btn btn-outline-primary language-btn"
+onclick="toggleLanguage()">
+
+🌐 EN
+
+</button>
+{% endif %}
+
+<button
+class="btn btn-outline-secondary"
+type="button"
+onclick="location.reload()"
+title="{% if is_arabic_rtl %}تحديث{% else %}Refresh{% endif %}"
+aria-label="{% if is_arabic_rtl %}تحديث{% else %}Refresh{% endif %}">
+
+<i class="fa-solid fa-arrows-rotate"></i>
+
+</button>
+
+<button
+class="btn btn-outline-dark"
+onclick="toggleTheme()">
+
+🌙
+
+</button>
+
+{% if user %}
+
+<span
+class="badge bg-primary p-2">
+
+{{ user.full_name }}
+
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endif %}
+
+<div class="content-wrapper">
+
+{% with messages =
+get_flashed_messages() %}
+
+{% if messages %}
+
+{% for msg in messages %}
+
+<div
+class="alert alert-info alert-dismissible fade show">
+
+{{ msg }}
+
+<button
+class="btn-close"
+data-bs-dismiss="alert">
+</button>
+
+</div>
+
+{% endfor %}
+
+{% endif %}
+{% endwith %}
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+</div>
+
+<script>
+
+function toggleSidebar(){
+
+document
+.getElementById(
+"sidebar"
+)
+.classList
+.toggle(
+"show"
+);
+
+}
+
+function toggleTheme(){
+
+const html =
+document.documentElement;
+
+const current =
+html.getAttribute(
+"data-bs-theme"
+);
+
+const next =
+current === "dark"
+? "light"
+: "dark";
+
+html.setAttribute(
+"data-bs-theme",
+next
+);
+
+localStorage.setItem(
+"theme",
+next
+);
+
+}
+
+const savedTheme =
+localStorage.getItem(
+"theme"
+);
+
+{% if is_login_page %}
+
+document
+.documentElement
+.setAttribute(
+"data-bs-theme",
+"dark"
+);
+
+{% else %}
+
+if(savedTheme){
+
+document
+.documentElement
+.setAttribute(
+"data-bs-theme",
+savedTheme
+);
+
+}
+
+{% endif %}
+
+function toggleLanguage(){
+
+const current =
+localStorage.getItem(
+"lang"
+) || "en";
+
+const next =
+current === "en"
+? "ar"
+: "en";
+
+localStorage.setItem(
+"lang",
+next
+);
+
+location.reload();
+
+}
+
+</script>
+
+<script
+src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+{% if is_operator_section %}
+<script
+src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js">
+</script>
+
+<script>
+
+function initSearchableSelect(
+select,
+dropdownParent
+){
+
+if(
+select.tomselect
+){
+return;
+}
+
+new TomSelect(
+select,
+{
+plugins:[
+"dropdown_input"
+],
+create:false,
+allowEmptyOption:true,
+dropdownParent:
+dropdownParent || "body",
+onDropdownOpen:function(){
+
+const input =
+this.dropdown
+?.querySelector(
+"input"
+);
+
+if(
+input
+){
+input.placeholder =
+"بحث...";
+}
+
+},
+render:{
+
+no_results:function(){
+
+return (
+'<div class="no-results px-2 py-1">'
++ "لا توجد نتائج"
++ "</div>"
+);
+
+}
+
+}
+
+}
+);
+
+}
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+document
+.querySelectorAll(
+".phone-input"
+)
+.forEach(function(input){
+
+input.addEventListener(
+"input",
+function(){
+
+this.value =
+this.value
+.replace(
+/\D/g,
+""
+)
+.slice(
+0,
+10
+);
+
+});
+
+});
+
+document
+.querySelectorAll(
+".form-select"
+)
+.forEach(function(
+select
+){
+
+if(
+!select.closest(
+".modal"
+) &&
+!select.classList.contains(
+"select-native"
+)
+){
+
+initSearchableSelect(
+select
+);
+
+}
+
+});
+
+document
+.querySelectorAll(
+".modal"
+)
+.forEach(function(
+modal
+){
+
+modal.addEventListener(
+"shown.bs.modal",
+function(){
+
+modal
+.querySelectorAll(
+".form-select:not(.select-native)"
+)
+.forEach(function(
+select
+){
+
+initSearchableSelect(
+select,
+modal
+);
+
+});
+
+modal
+.querySelectorAll(
+"form"
+)
+.forEach(function(
+form
+){
+
+if(
+form.dataset.tomselectSubmit
+){
+return;
+}
+
+form.dataset.tomselectSubmit =
+"true";
+
+form.addEventListener(
+"submit",
+function(){
+
+form
+.querySelectorAll(
+".form-select"
+)
+.forEach(function(
+select
+){
+
+if(
+select.tomselect
+){
+select.tomselect.sync();
+}
+
+});
+
+});
+
+});
+
+});
+
+});
+
+</script>
+{% endif %}
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>

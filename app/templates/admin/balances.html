@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}
+أرصدة السائقين
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+<div class="col-12">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h4 class="mb-0">
+
+<i class="fa-solid fa-money-bill-transfer"></i>
+
+أرصدة السائقين
+
+</h4>
+
+<span class="badge bg-primary">
+
+{{ drivers|length }} سائق
+
+</span>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead>
+
+<tr>
+
+<th>الرقم</th>
+<th>السائق</th>
+<th>اسم المستخدم</th>
+<th>الحالة</th>
+<th>الرصيد الحالي</th>
+<th>تحديث الرصيد</th>
+<th>سجل الحساب</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for driver in drivers %}
+
+<tr>
+
+<td>
+
+#{{ driver.id }}
+
+</td>
+
+<td>
+
+<strong>
+
+{{ driver.full_name }}
+
+</strong>
+
+</td>
+
+<td>
+
+{{ driver.username }}
+
+</td>
+
+<td>
+
+{% if driver.active %}
+
+<span class="badge bg-success">
+
+نشط
+
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary">
+
+معطّل
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if driver.balance > 0 %}
+
+<span class="badge bg-success fs-6">
+
++{{ "%.2f"|format(driver.balance) }} د.أ
+
+</span>
+
+<br>
+
+<small class="text-success">
+
+الشركة مدينة للسائق
+
+</small>
+
+{% elif driver.balance < 0 %}
+
+<span class="badge bg-danger fs-6">
+
+{{ "%.2f"|format(driver.balance) }} د.أ
+
+</span>
+
+<br>
+
+<small class="text-danger">
+
+السائق مدين للشركة
+
+</small>
+
+{% else %}
+
+<span class="badge bg-secondary fs-6">
+
+0.00 د.أ
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+<form
+method="POST"
+action="{{ url_for('admin.update_balance', user_id=driver.id) }}">
+
+<div class="input-group">
+
+<input
+type="number"
+step="0.01"
+name="balance"
+value="{{ driver.balance }}"
+class="form-control"
+required>
+
+<button
+type="submit"
+class="btn btn-primary">
+
+<i class="fa-solid fa-floppy-disk"></i>
+
+</button>
+
+</div>
+
+</form>
+
+</td>
+
+<td>
+
+<a
+href="{{ url_for('admin.ledger', driver_id=driver.id) }}"
+class="btn btn-warning">
+
+<i class="fa-solid fa-book"></i>
+
+سجل الحساب
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row mt-4">
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<h5>
+
+<i class="fa-solid fa-circle-info"></i>
+
+قواعد الرصيد
+
+</h5>
+
+<hr>
+
+<div class="mb-3">
+
+<span class="badge bg-success">
+
+موجب
+
+</span>
+
+<p class="mt-2 mb-0">
+
+الشركة مدينة للسائق بهذا المبلغ.
+
+</p>
+
+</div>
+
+<div class="mb-3">
+
+<span class="badge bg-danger">
+
+سالب
+
+</span>
+
+<p class="mt-2 mb-0">
+
+السائق مدين للشركة بهذا المبلغ.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<h5>
+
+<i class="fa-solid fa-calculator"></i>
+
+منطق المحاسبة
+
+</h5>
+
+<hr>
+
+<div class="row">
+
+<div class="col-md-6">
+
+<div class="alert alert-success">
+
+<strong>طلب مدفوع</strong>
+
+<hr>
+
+رصيد السائق
+
+<br>
+
++
+
+رسوم التوصيل
+
+</div>
+
+</div>
+
+<div class="col-md-6">
+
+<div class="alert alert-warning">
+
+<strong>طلب نقدي</strong>
+
+<hr>
+
+رصيد السائق
+
+<br>
+
+-
+
+رسوم التوصيل
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

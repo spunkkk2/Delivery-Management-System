@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+
+{% block title %}
+إدارة المستخدمين
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card">
+
+<div class="card-header">
+
+<h5 class="mb-0">
+
+إضافة مستخدم
+
+</h5>
+
+</div>
+
+<div class="card-body">
+
+<form
+method="POST"
+action="{{ url_for('admin.create_user') }}">
+
+<div class="mb-3">
+
+<label class="form-label">
+
+الاسم الكامل
+
+</label>
+
+<input
+type="text"
+name="full_name"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+اسم المستخدم
+
+</label>
+
+<input
+type="text"
+name="username"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+كلمة المرور
+
+</label>
+
+<input
+type="password"
+name="password"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+الدور
+
+</label>
+
+<select
+name="role"
+class="form-select"
+id="createRoleSelect">
+
+<option value="operator">
+
+مشغّل
+
+</option>
+
+<option value="driver">
+
+سائق
+
+</option>
+
+<option value="admin">
+
+مدير
+
+</option>
+
+</select>
+
+</div>
+
+<div
+class="mb-3"
+id="createPermissionsBlock">
+
+<label class="form-label">
+
+الصلاحيات
+
+</label>
+
+<div class="row g-2">
+
+{% for key in all_operator_permissions %}
+
+<div class="col-md-6">
+
+<div class="form-check">
+
+<input
+class="form-check-input"
+type="checkbox"
+name="permissions"
+value="{{ key }}"
+id="createPerm{{ key }}"
+checked>
+
+<label
+class="form-check-label"
+for="createPerm{{ key }}">
+
+{{ operator_pages[key].label }}
+
+</label>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+<button
+type="submit"
+class="btn btn-success w-100">
+
+<i class="fa-solid fa-plus"></i>
+
+إضافة مستخدم
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between mb-3">
+
+<h5>
+
+المستخدمون
+
+</h5>
+
+<span
+class="badge bg-primary">
+
+{{ users|length }} مستخدم
+
+</span>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead>
+
+<tr>
+
+<th>الرقم</th>
+<th>الاسم</th>
+<th>اسم المستخدم</th>
+<th>الدور</th>
+<th>الحالة</th>
+<th>الرصيد</th>
+<th>إجراءات</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for u in users %}
+
+<tr>
+
+<td>
+
+{{ u.id }}
+
+</td>
+
+<td>
+
+{{ u.full_name }}
+
+</td>
+
+<td>
+
+{{ u.username }}
+
+</td>
+
+<td>
+
+{% if u.role == 'admin' %}
+
+<span class="badge bg-danger">
+
+مدير
+
+</span>
+
+{% elif u.role == 'operator' %}
+
+<span class="badge bg-warning">
+
+مشغّل
+
+</span>
+
+{% else %}
+
+<span class="badge bg-success">
+
+سائق
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if u.active %}
+
+<span class="badge bg-success">
+
+نشط
+
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary">
+
+معطّل
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(u.balance) }}
+
+</td>
+
+<td>
+
+<button
+class="btn btn-sm btn-primary"
+data-bs-toggle="modal"
+data-bs-target="#editUser{{ u.id }}">
+
+<i class="fa-solid fa-pen"></i>
+
+</button>
+
+<a
+href="{{ url_for('admin.toggle_user', user_id=u.id) }}"
+class="btn btn-sm {% if u.active %}btn-danger{% else %}btn-success{% endif %}">
+
+{% if u.active %}
+
+<i class="fa-solid fa-ban"></i>
+
+{% else %}
+
+<i class="fa-solid fa-check"></i>
+
+{% endif %}
+
+</a>
+
+</td>
+
+</tr>
+
+<div
+class="modal fade"
+id="editUser{{ u.id }}">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5>
+
+تعديل المستخدم
+
+</h5>
+
+<button
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<form
+method="POST"
+action="{{ url_for('admin.edit_user', user_id=u.id) }}">
+
+<div class="modal-body">
+
+<div class="mb-3">
+
+<label>
+
+الاسم الكامل
+
+</label>
+
+<input
+type="text"
+name="full_name"
+value="{{ u.full_name }}"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label>
+
+الدور
+
+</label>
+
+<select
+name="role"
+class="form-select role-select"
+data-user-id="{{ u.id }}">
+
+<option
+value="admin"
+{% if u.role == 'admin' %}selected{% endif %}>
+
+مدير
+
+</option>
+
+<option
+value="operator"
+{% if u.role == 'operator' %}selected{% endif %}>
+
+مشغّل
+
+</option>
+
+<option
+value="driver"
+{% if u.role == 'driver' %}selected{% endif %}>
+
+سائق
+
+</option>
+
+</select>
+
+</div>
+
+<div
+class="mb-3 driver-fields-{{ u.id }}"
+{% if u.role != 'driver' %}style="display:none"{% endif %}>
+
+<label>
+
+حالة السائق
+
+</label>
+
+<select
+name="status"
+class="form-select">
+
+<option
+value="Available"
+{% if u.status == 'Available' %}selected{% endif %}>
+
+متاح
+
+</option>
+
+<option
+value="Busy"
+{% if u.status == 'Busy' %}selected{% endif %}>
+
+مشغول
+
+</option>
+
+<option
+value="Offline"
+{% if u.status == 'Offline' %}selected{% endif %}>
+
+غير متصل
+
+</option>
+
+</select>
+
+</div>
+
+<div
+class="mb-3 operator-fields-{{ u.id }}"
+{% if u.role != 'operator' %}style="display:none"{% endif %}>
+
+<label>
+
+الصلاحيات
+
+</label>
+
+<div class="row g-2">
+
+{% for key in all_operator_permissions %}
+
+<div class="col-md-6">
+
+<div class="form-check">
+
+<input
+class="form-check-input"
+type="checkbox"
+name="permissions"
+value="{{ key }}"
+id="perm{{ u.id }}_{{ key }}"
+{% if key in permissions_map[u.id] %}checked{% endif %}>
+
+<label
+class="form-check-label"
+for="perm{{ u.id }}_{{ key }}">
+
+{{ operator_pages[key].label }}
+
+</label>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<small class="text-muted">
+
+إلغاء الصلاحية يخفي الصفحة ويمنع الوصول إليها
+
+</small>
+
+</div>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="submit"
+class="btn btn-primary">
+
+حفظ التغييرات
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function setFieldGroupEnabled(
+container,
+enabled
+){
+
+if(
+!container
+){
+return;
+}
+
+container
+.querySelectorAll(
+"input, select, textarea"
+)
+.forEach(function(
+field
+){
+
+field.disabled =
+!enabled;
+
+});
+
+}
+
+function toggleUserRoleFields(
+userId,
+role
+){
+
+const driverBlock =
+document.querySelector(
+".driver-fields-" + userId
+);
+
+const operatorBlock =
+document.querySelector(
+".operator-fields-" + userId
+);
+
+if(driverBlock){
+driverBlock.style.display =
+role === "driver"
+? ""
+: "none";
+
+setFieldGroupEnabled(
+driverBlock,
+role === "driver"
+);
+}
+
+if(operatorBlock){
+operatorBlock.style.display =
+role === "operator"
+? ""
+: "none";
+
+setFieldGroupEnabled(
+operatorBlock,
+role === "operator"
+);
+}
+
+}
+
+document
+.querySelectorAll(
+".role-select"
+)
+.forEach(function(
+select
+){
+
+toggleUserRoleFields(
+select.dataset.userId,
+select.value
+);
+
+select.addEventListener(
+"change",
+function(){
+
+toggleUserRoleFields(
+this.dataset.userId,
+this.value
+);
+
+});
+
+});
+
+const createRoleSelect =
+document.getElementById(
+"createRoleSelect"
+);
+
+const createPermissionsBlock =
+document.getElementById(
+"createPermissionsBlock"
+);
+
+if(
+createRoleSelect &&
+createPermissionsBlock
+){
+
+function toggleCreatePermissions(){
+
+const isOperator =
+createRoleSelect.value
+=== "operator";
+
+createPermissionsBlock.style.display =
+isOperator
+? ""
+: "none";
+
+setFieldGroupEnabled(
+createPermissionsBlock,
+isOperator
+);
+
+}
+
+createRoleSelect.addEventListener(
+"change",
+toggleCreatePermissions
+);
+
+toggleCreatePermissions();
+
+}
+
+</script>
+
+{% endblock %}

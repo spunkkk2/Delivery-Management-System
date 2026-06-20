@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}
+حساباتي
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+<div class="row mb-4">
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card">
+
+<div class="card-body text-center">
+
+<h5>
+
+الرصيد الحالي
+
+</h5>
+
+{% if user.balance >= 0 %}
+
+<h1 class="text-success">
+
+{{ "%.2f"|format(user.balance) }} د.أ
+
+</h1>
+
+<p>
+
+الشركة مدينة لك بهذا المبلغ
+
+</p>
+
+{% else %}
+
+<h1 class="text-danger">
+
+{{ "%.2f"|format(user.balance) }} د.أ
+
+</h1>
+
+<p>
+
+أنت مدين للشركة بهذا المبلغ
+
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="row">
+
+<div class="col-md-4">
+
+<div class="card dashboard-card text-center">
+
+<div class="card-body">
+
+<h3>
+
+{{ completed_orders }}
+
+</h3>
+
+<p>
+
+طلبات مكتملة
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card dashboard-card text-center">
+
+<div class="card-body">
+
+<h3>
+
+{{ declined_orders }}
+
+</h3>
+
+<p>
+
+طلبات مرفوضة
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card dashboard-card text-center">
+
+<div class="card-body">
+
+<h3>
+
+{{ acceptance_rate }}%
+
+</h3>
+
+<p>
+
+نسبة القبول
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card dashboard-card">
+
+<div class="card-header">
+
+<h5>
+
+سجل الحساب
+
+</h5>
+
+</div>
+
+<div class="card-body">
+
+<div class="table-responsive">
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>التاريخ</th>
+<th>رقم الطلب</th>
+<th>المحل</th>
+<th>طريقة الدفع</th>
+<th>العمولة</th>
+<th>الرصيد بعد العملية</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for item in ledger_entries %}
+
+<tr>
+
+<td>
+
+{{ item.created_at.strftime('%Y-%m-%d') }}
+
+</td>
+
+<td>
+
+{% if item.order_id %}
+
+#{{ item.order_id }}
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if item.order and item.order.shop %}
+
+{{ item.order.shop.name }}
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if item.order %}
+
+{{ item.order.payment_type }}
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(item.amount) }}
+
+د.أ
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(item.balance_after) }}
+
+د.أ
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

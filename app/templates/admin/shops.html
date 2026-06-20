@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}
+إدارة المحلات
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card">
+
+<div class="card-header">
+
+<h5 class="mb-0">
+
+<i class="fa-solid fa-store"></i>
+
+إضافة محل
+
+</h5>
+
+</div>
+
+<div class="card-body">
+
+<form
+method="POST"
+action="{{ url_for('operator.create_shop') }}">
+
+<div class="mb-3">
+
+<label class="form-label">
+
+اسم المحل
+
+</label>
+
+<input
+type="text"
+name="name"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+الهاتف
+
+</label>
+
+<input
+type="text"
+name="phone"
+class="form-control">
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+ملاحظات
+
+</label>
+
+<textarea
+name="notes"
+rows="4"
+class="form-control"></textarea>
+
+</div>
+
+<button
+type="submit"
+class="btn btn-success w-100">
+
+<i class="fa-solid fa-plus"></i>
+
+إضافة المحل
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h4>
+
+<i class="fa-solid fa-store"></i>
+
+المحلات
+
+</h4>
+
+<input
+type="text"
+id="shopSearch"
+class="form-control w-50"
+placeholder="بحث في المحلات...">
+
+</div>
+
+<div class="table-responsive">
+
+<table
+class="table table-hover align-middle"
+id="shopsTable">
+
+<thead>
+
+<tr>
+
+<th>الرقم</th>
+<th>الاسم</th>
+<th>الهاتف</th>
+<th>الطلبات</th>
+<th>ملاحظات</th>
+<th>إجراءات</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for shop in shops %}
+
+<tr>
+
+<td>
+
+#{{ shop.id }}
+
+</td>
+
+<td>
+
+<strong>
+
+{{ shop.name }}
+
+</strong>
+
+</td>
+
+<td>
+
+{{ shop.phone or '-' }}
+
+</td>
+
+<td>
+
+<span class="badge bg-primary">
+
+{{ shop.orders|length if shop.orders is defined else 0 }}
+
+</span>
+
+</td>
+
+<td>
+
+{{ shop.notes[:50] if shop.notes else '-' }}
+
+</td>
+
+<td>
+
+<div class="btn-group">
+
+<button
+class="btn btn-sm btn-primary"
+data-bs-toggle="modal"
+data-bs-target="#editShop{{ shop.id }}">
+
+<i class="fa-solid fa-pen"></i>
+
+</button>
+
+<a
+href="{{ url_for('admin.delete_shop', shop_id=shop.id) }}"
+class="btn btn-sm btn-danger"
+onclick="return confirm('هل تريد حذف هذا المحل؟')">
+
+<i class="fa-solid fa-trash"></i>
+
+</a>
+
+</div>
+
+</td>
+
+</tr>
+
+<!-- EDIT SHOP MODAL -->
+
+<div
+class="modal fade"
+id="editShop{{ shop.id }}"
+tabindex="-1">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5>
+
+تعديل المحل
+
+</h5>
+
+<button
+type="button"
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<form
+method="POST"
+action="{{ url_for('admin.edit_shop', shop_id=shop.id) }}">
+
+<div class="modal-body">
+
+<div class="mb-3">
+
+<label>
+
+اسم المحل
+
+</label>
+
+<input
+type="text"
+name="name"
+value="{{ shop.name }}"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label>
+
+الهاتف
+
+</label>
+
+<input
+type="text"
+name="phone"
+value="{{ shop.phone }}"
+class="form-control">
+
+</div>
+
+<div class="mb-3">
+
+<label>
+
+ملاحظات
+
+</label>
+
+<textarea
+name="notes"
+rows="4"
+class="form-control">{{ shop.notes }}</textarea>
+
+</div>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="submit"
+class="btn btn-primary">
+
+حفظ التغييرات
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+document
+.getElementById(
+"shopSearch"
+)
+.addEventListener(
+"keyup",
+function(){
+
+let value =
+this.value
+.toLowerCase();
+
+let rows =
+document.querySelectorAll(
+"#shopsTable tbody tr"
+);
+
+rows.forEach(row=>{
+
+row.style.display =
+row.innerText
+.toLowerCase()
+.includes(value)
+? ""
+: "none";
+
+});
+
+});
+
+</script>
+
+{% endblock %}

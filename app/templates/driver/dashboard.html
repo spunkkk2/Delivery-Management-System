@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+
+{% block title %}
+Driver Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+<div class="card dashboard-card mb-4">
+
+<div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
+
+<div>
+
+<h5 class="mb-1">
+
+حالة التوفر
+
+</h5>
+
+<p class="text-muted mb-0">
+
+{% if user.status == "Available" %}
+
+أنت متاح لاستلام طلبات جديدة
+
+{% else %}
+
+أنت غير متاح حالياً
+
+{% endif %}
+
+</p>
+
+</div>
+
+<form
+method="POST"
+action="{{ url_for('driver.change_status') }}"
+class="d-flex align-items-center gap-3">
+
+<input
+type="hidden"
+name="status"
+id="driverStatusValue"
+value="{% if user.status == 'Available' %}Available{% else %}Offline{% endif %}">
+
+<div class="form-check form-switch mb-0 driver-status-switch">
+
+<input
+class="form-check-input"
+type="checkbox"
+role="switch"
+id="driverStatusSwitch"
+style="width: 3.5em; height: 1.75em; cursor: pointer;"
+{% if user.status == "Available" %}checked{% endif %}>
+
+<label
+class="form-check-label fw-bold"
+for="driverStatusSwitch"
+id="driverStatusLabel">
+
+{% if user.status == "Available" %}
+
+متاح
+
+{% else %}
+
+غير متاح
+
+{% endif %}
+
+</label>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+<h3 class="mb-4">
+
+الطلبات الحالية
+
+</h3>
+
+{% if active_orders %}
+
+<div class="row g-3">
+
+{% for order in active_orders %}
+
+<div class="col-12">
+
+<div class="card driver-order-card shadow-sm border-0">
+
+<div class="card-header bg-primary text-white">
+
+طلب رقم #{{ order.id }}
+<div class="mb-3">
+
+<strong>
+
+طريقة الدفع:
+
+</strong>
+
+{% if order.payment_type == "Paid" %}
+
+<span class="badge bg-success">
+
+مدفوع مسبقاً
+
+</span>
+
+{% else %}
+
+<span class="badge bg-warning text-dark">
+
+كاش
+
+</span>
+
+{% endif %}
+
+</div>
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<strong>
+
+موقع المحل
+
+</strong>
+
+<br>
+
+{{ order.shop_location }}
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<strong>
+
+موقع التوصيل
+
+</strong>
+
+<br>
+
+{{ order.delivery_location }}
+
+</div>
+
+<div class="col-md-4 mb-3">
+
+<strong>
+
+المبلغ المدفوع للمحل
+
+</strong>
+
+<br>
+
+{% if order.payment_type == "Paid" %}
+
+<span class="badge bg-success">
+
+مدفوع
+
+</span>
+
+{% else %}
+
+{{ order.amount_paid_to_shop }} د.أ
+
+{% endif %}
+
+</div>
+
+
+<div class="col-md-4 mb-3">
+
+<strong>
+
+المبلغ المستلم من الزبون
+
+</strong>
+
+<br>
+
+{% if order.payment_type == "Paid" %}
+
+<span class="badge bg-success">
+
+مدفوع
+
+</span>
+
+{% else %}
+
+{{ order.amount_received_from_customer }} د.أ
+
+{% endif %}
+
+</div>
+
+
+<div class="col-md-4 mb-3">
+
+<strong>
+
+رقم الزبون
+
+</strong>
+
+<br>
+
+<a
+href="tel:{{ order.customer_phone }}"
+class="text-decoration-none fw-bold">
+
+{{ order.customer_phone }}
+
+</a>
+
+</div>
+
+<div class="col-md-4 mb-3">
+
+<strong class="text-success">
+
+رسوم التوصيل
+
+</strong>
+
+<br>
+
+{{ order.commission }}
+
+د.أ
+
+</div>
+
+<div class="col-md-4 mb-3">
+
+<strong class="text-primary">
+
+عمولتك
+
+</strong>
+
+<br>
+
+{{ "%.2f"|format(order.driver_commission) }}
+
+د.أ
+
+</div>
+
+</div>
+
+<hr>
+
+<div class="d-flex gap-2">
+
+{% if order.status == "Assigned" %}
+
+<a
+href="{{ url_for('driver.accept_order', order_id=order.id) }}"
+class="btn btn-success flex-fill">
+
+قبول
+
+</a>
+
+<button
+class="btn btn-danger flex-fill"
+data-bs-toggle="modal"
+data-bs-target="#decline{{ order.id }}">
+
+رفض
+
+</button>
+
+{% endif %}
+
+{% if order.status == "Accepted" %}
+
+<a
+href="{{ url_for('driver.pickup_order', order_id=order.id) }}"
+class="btn btn-warning w-100">
+
+تم الاستلام من المحل
+
+</a>
+
+{% endif %}
+
+{% if order.status == "Picked Up" %}
+
+<a
+href="{{ url_for('driver.deliver_order', order_id=order.id) }}"
+class="btn btn-primary w-100">
+
+تم التسليم للزبون
+
+</a>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<!-- DECLINE MODAL -->
+
+<div
+class="modal fade"
+id="decline{{ order.id }}"
+tabindex="-1">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+<form
+method="POST"
+action="{{ url_for('driver.decline_order', order_id=order.id) }}">
+
+<div class="modal-header">
+
+<h5 class="modal-title">
+
+سبب الرفض
+
+</h5>
+
+<button
+type="button"
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<div class="modal-body">
+
+<textarea
+name="reason"
+class="form-control"
+rows="4"
+placeholder="اكتب سبب الرفض..."
+required></textarea>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="button"
+class="btn btn-secondary"
+data-bs-dismiss="modal">
+
+إلغاء
+
+</button>
+
+<button
+type="submit"
+class="btn btn-danger">
+
+تأكيد الرفض
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="text-center py-5">
+
+<i
+class="fa-solid fa-box-open"
+style="font-size:80px;color:#cbd5e1"> </i>
+
+<h4 class="mt-4">
+
+لا يوجد طلبات حالياً
+
+</h4>
+
+<p class="text-muted">
+
+سيتم عرض الطلبات الجديدة هنا عند تعيينها لك
+
+</p>
+
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+const statusSwitch =
+document.getElementById(
+"driverStatusSwitch"
+);
+
+const statusValue =
+document.getElementById(
+"driverStatusValue"
+);
+
+const statusLabel =
+document.getElementById(
+"driverStatusLabel"
+);
+
+if (statusSwitch) {
+
+statusSwitch.addEventListener(
+"change",
+function () {
+
+if (this.checked) {
+
+statusValue.value =
+"Available";
+
+statusLabel.textContent =
+"متاح";
+
+} else {
+
+statusValue.value =
+"Offline";
+
+statusLabel.textContent =
+"غير متاح";
+
+}
+
+this.closest("form").submit();
+
+}
+);
+
+}
+
+</script>
+
+{% endblock %}

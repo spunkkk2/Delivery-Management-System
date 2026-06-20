@@ -1,0 +1,736 @@
+{% extends "base.html" %}
+
+{% block title %}
+إدارة الطلبات
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+<div class="col-12">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h4>
+
+<i class="fa-solid fa-box"></i>
+
+إدارة الطلبات
+
+</h4>
+
+<form
+method="GET"
+class="d-flex gap-2">
+
+<input
+type="text"
+name="search"
+value="{{ search }}"
+class="form-control"
+placeholder="بحث بالزبون، الهاتف، أو الحالة">
+
+<button
+type="submit"
+class="btn btn-primary">
+
+<i class="fa-solid fa-magnifying-glass"></i>
+
+</button>
+
+</form>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+<th>الزبون</th>
+<th>الهاتف</th>
+<th>المحل</th>
+<th>المجموع</th>
+<th>الدفع</th>
+<th>الحالة</th>
+<th>السائق</th>
+<th>إجراءات</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr>
+
+<td>
+
+<strong>#{{ order.id }}</strong>
+
+</td>
+
+<td>
+
+{{ order.customer_name }}
+
+</td>
+
+<td>
+
+{{ order.customer_phone }}
+
+</td>
+
+<td>
+
+{% if order.shop %}
+{{ order.shop.name }}
+{% else %}
+-
+{% endif %}
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(order.order_total) }} د.أ
+
+</td>
+
+<td>
+
+{% if order.payment_type == "Paid" %}
+
+<span class="badge bg-success">
+
+مدفوع
+
+</span>
+
+{% else %}
+
+<span class="badge bg-warning text-dark">
+
+نقدي
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if order.status == "Pending" %}
+<span class="badge bg-secondary">قيد الانتظار</span>
+
+{% elif order.status == "Assigned" %}
+<span class="badge bg-primary">تم التعيين</span>
+
+{% elif order.status == "Accepted" %}
+<span class="badge bg-info">مقبول</span>
+
+{% elif order.status == "Picked Up" %}
+<span class="badge bg-warning text-dark">تم الاستلام</span>
+
+{% elif order.status == "Delivered" %}
+<span class="badge bg-success">تم التوصيل</span>
+
+{% elif order.status == "Declined" %}
+<span class="badge bg-danger">مرفوض</span>
+
+{% elif order.status == "Cancelled" %}
+<span class="badge bg-dark">ملغي</span>
+{% endif %}
+
+</td>
+
+<td>
+
+{% if order.driver %}
+{{ order.driver.full_name }}
+{% else %}
+-
+{% endif %}
+
+</td>
+
+<td>
+
+<div class="btn-group">
+
+<button
+class="btn btn-sm btn-primary"
+data-bs-toggle="modal"
+data-bs-target="#editOrder{{ order.id }}">
+
+<i class="fa-solid fa-pen"></i>
+
+</button>
+
+<button
+class="btn btn-sm btn-success"
+data-bs-toggle="modal"
+data-bs-target="#assignDriver{{ order.id }}">
+
+<i class="fa-solid fa-truck"></i>
+
+</button>
+
+{% if order.status not in ['Delivered','Cancelled'] %}
+
+<a
+href="{{ url_for('operator.cancel_order', order_id=order.id) }}"
+class="btn btn-sm btn-danger"
+onclick="return confirm('هل تريد إلغاء هذا الطلب؟')">
+
+<i class="fa-solid fa-xmark"></i>
+
+</a>
+
+{% endif %}
+
+</div>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+
+<td
+colspan="9"
+class="text-center py-5">
+
+<i class="fa-solid fa-box-open fa-3x text-muted"></i>
+
+<br><br>
+
+لا توجد طلبات
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% for order in orders %}
+
+<div
+class="modal fade"
+id="editOrder{{ order.id }}"
+data-bs-focus="false"
+tabindex="-1">
+
+<div class="modal-dialog modal-lg">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5>
+
+تعديل الطلب #{{ order.id }}
+
+</h5>
+
+<button
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<form
+method="POST"
+action="{{ url_for('operator.edit_order', order_id=order.id) }}">
+
+<div class="modal-body">
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label>اسم الزبون</label>
+
+<input
+type="text"
+name="customer_name"
+value="{{ order.customer_name }}"
+class="form-control">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>الهاتف</label>
+
+<input
+type="tel"
+name="customer_phone"
+value="{{ order.customer_phone }}"
+class="form-control phone-input"
+inputmode="numeric"
+pattern="[0-9]{10}"
+minlength="10"
+maxlength="10"
+title="يجب أن يكون الهاتف 10 أرقام"
+required>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>المحل</label>
+
+<select
+name="shop_id"
+id="shopSelect{{ order.id }}"
+class="form-select"
+required>
+
+<option value="">
+
+اختر المحل
+
+</option>
+
+{% for shop in shops | default([]) %}
+
+<option
+value="{{ shop.id }}"
+data-place="{{ shop.place.name if shop.place else '' }}"
+data-place-id="{{ shop.place_id or '' }}"
+data-location="{{ shop.location_details or '' }}"
+{% if order.shop_id == shop.id %}selected{% endif %}>
+
+{{ shop.name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>المجموع</label>
+
+<input
+type="number"
+step="0.01"
+name="order_total"
+value="{{ order.order_total }}"
+class="form-control">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>رسوم التوصيل</label>
+
+<input
+type="number"
+step="0.01"
+name="commission"
+id="commissionField{{ order.id }}"
+value="{{ order.commission }}"
+class="form-control">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>نوع الدفع</label>
+
+<select
+name="payment_type"
+class="form-select select-native">
+
+<option
+value="Cash"
+{% if order.payment_type != "Paid" %}selected{% endif %}>
+
+نقدي
+
+</option>
+
+<option
+value="Paid"
+{% if order.payment_type == "Paid" %}selected{% endif %}>
+
+مدفوع
+
+</option>
+
+</select>
+
+</div>
+
+<div class="col-12 mb-3">
+
+<label>منطقة الوجهة</label>
+
+<select
+name="destination_place_id"
+id="destinationPlace{{ order.id }}"
+class="form-select"
+required>
+
+<option value="">
+
+اختر الوجهة
+
+</option>
+
+{% for place in places | default([]) %}
+
+<option
+value="{{ place.id }}"
+{% if order.destination_place_id == place.id %}selected{% endif %}>
+
+{{ place.name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="col-12 mb-3">
+
+<label>موقع التوصيل التفصيلي</label>
+
+<textarea
+name="delivery_location"
+rows="2"
+class="form-control">{{ order.delivery_location or order.destination }}</textarea>
+
+</div>
+
+<div class="col-12 mb-3">
+
+<label>ملاحظات</label>
+
+<textarea
+name="notes"
+rows="3"
+class="form-control">{{ order.notes }}</textarea>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="submit"
+class="btn btn-primary">
+
+حفظ التغييرات
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<div
+class="modal fade"
+id="assignDriver{{ order.id }}"
+data-bs-focus="false"
+tabindex="-1">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5>
+
+{% if order.status == "Declined" %}
+
+إعادة تعيين سائق
+
+{% else %}
+
+تعيين سائق
+
+{% endif %}
+
+</h5>
+
+<button
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<form
+method="POST"
+action="{% if order.status == 'Declined' %}{{ url_for('operator.reassign_driver', order_id=order.id) }}{% else %}{{ url_for('operator.assign_driver', order_id=order.id) }}{% endif %}">
+
+<div class="modal-body">
+
+<select
+name="driver_id"
+class="form-select">
+
+{% for driver in drivers %}
+
+<option value="{{ driver.id }}">
+
+{{ driver.full_name }}
+-
+{% if driver.status == "Available" %}متاح{% elif driver.status == "Busy" %}مشغول{% else %}غير متصل{% endif %}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+{% if order.decline_reason %}
+
+<div class="alert alert-danger mt-3">
+
+<strong>
+
+سبب الرفض
+
+</strong>
+
+<hr>
+
+{{ order.decline_reason }}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="submit"
+class="btn btn-success">
+
+حفظ
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+const routeCommissions =
+{{ route_commissions | default({}) | tojson }};
+
+const defaultCommission =
+{{ commission.default_commission if commission else 3 }};
+
+function updateEditDeliveryFee(
+orderId
+){
+
+const shopSelect =
+document.getElementById(
+"shopSelect" + orderId
+);
+
+const destinationPlace =
+document.getElementById(
+"destinationPlace" + orderId
+);
+
+const commissionField =
+document.getElementById(
+"commissionField" + orderId
+);
+
+if(
+!shopSelect ||
+!destinationPlace ||
+!commissionField
+){
+return;
+}
+
+const shopOption =
+shopSelect.querySelector(
+'option[value="' + (
+shopSelect.tomselect
+? shopSelect.tomselect.getValue()
+: shopSelect.value
+) + '"]'
+);
+
+const fromPlaceId =
+shopOption
+? shopOption.dataset.placeId
+: "";
+
+const toPlaceId =
+destinationPlace.tomselect
+? destinationPlace.tomselect.getValue()
+: destinationPlace.value;
+
+if(
+fromPlaceId &&
+toPlaceId
+){
+
+const routeKey =
+fromPlaceId + "-" + toPlaceId;
+
+if(
+routeCommissions[routeKey]
+!== undefined
+){
+
+commissionField.value =
+Number(
+routeCommissions[routeKey]
+).toFixed(2);
+
+}else{
+
+commissionField.value =
+Number(
+defaultCommission
+).toFixed(2);
+
+}
+
+}
+
+}
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+document
+.querySelectorAll(
+'[id^="editOrder"]'
+)
+.forEach(function(
+modal
+){
+
+const orderId =
+modal.id.replace(
+"editOrder",
+""
+);
+
+modal.addEventListener(
+"shown.bs.modal",
+function(){
+
+updateEditDeliveryFee(
+orderId
+);
+
+const shopSelect =
+document.getElementById(
+"shopSelect" + orderId
+);
+
+const destinationPlace =
+document.getElementById(
+"destinationPlace" + orderId
+);
+
+if(
+shopSelect?.tomselect
+){
+
+shopSelect.tomselect.on(
+"change",
+function(){
+
+updateEditDeliveryFee(
+orderId
+);
+
+}
+);
+
+}
+
+if(
+destinationPlace?.tomselect
+){
+
+destinationPlace.tomselect.on(
+"change",
+function(){
+
+updateEditDeliveryFee(
+orderId
+);
+
+}
+);
+
+}
+
+});
+
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}
+Delivery History
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+    <div class="col-12">
+
+        <div class="table-card">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h4 class="mb-0">
+
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+
+                    Delivery History
+
+                </h4>
+
+                <span class="badge bg-primary">
+
+                    {{ orders|length }} Orders
+
+                </span>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Shop</th>
+                            <th>Total</th>
+                            <th>Commission</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for order in orders %}
+
+                        <tr>
+
+                            <td>
+
+                                #{{ order.id }}
+
+                            </td>
+
+                            <td>
+
+                                {% if order.created_at %}
+                                {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {{ order.customer_name }}
+
+                            </td>
+
+                            <td>
+
+                                <a
+                                    href="tel:{{ order.customer_phone }}"
+                                    class="text-decoration-none">
+
+                                    {{ order.customer_phone }}
+
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                {% if order.shop %}
+                                {{ order.shop.name }}
+                                {% else %}
+                                -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {{ "%.2f"|format(order.order_total) }} JD
+
+                            </td>
+
+                            <td>
+
+                                {{ "%.2f"|format(order.commission) }} JD
+
+                            </td>
+
+                            <td>
+
+                                {% if order.payment_type == "Paid" %}
+
+                                <span class="badge bg-success">
+
+                                    Paid
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Cash
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if order.status == "Delivered" %}
+
+                                <span class="badge bg-success">
+
+                                    Delivered
+
+                                </span>
+
+                                {% elif order.status == "Declined" %}
+
+                                <span class="badge bg-danger">
+
+                                    Declined
+
+                                </span>
+
+                                {% elif order.status == "Cancelled" %}
+
+                                <span class="badge bg-dark">
+
+                                    Cancelled
+
+                                </span>
+
+                                {% elif order.status == "Accepted" %}
+
+                                <span class="badge bg-info">
+
+                                    Accepted
+
+                                </span>
+
+                                {% elif order.status == "Assigned" %}
+
+                                <span class="badge bg-primary">
+
+                                    Assigned
+
+                                </span>
+
+                                {% elif order.status == "Picked Up" %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Picked Up
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+
+                                    {{ order.status }}
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        {% if not orders %}
+
+                        <tr>
+
+                            <td
+                                colspan="9"
+                                class="text-center py-5">
+
+                                <i class="fa-solid fa-box-open fa-3x text-muted"></i>
+
+                                <br><br>
+
+                                No Orders Found
+
+                            </td>
+
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

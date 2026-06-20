@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+
+{% block title %}
+Driver Ledger
+{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+
+    <div class="col-lg-4">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body text-center">
+
+                <h5 class="mb-3">
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                    Current Balance
+
+                </h5>
+
+                {% if user.balance > 0 %}
+
+                <h2 class="text-success">
+
+                    +{{ "%.2f"|format(user.balance) }} JD
+
+                </h2>
+
+                <p class="text-success mb-0">
+
+                    Company Owes You
+
+                </p>
+
+                {% elif user.balance < 0 %}
+
+                <h2 class="text-danger">
+
+                    {{ "%.2f"|format(user.balance) }} JD
+
+                </h2>
+
+                <p class="text-danger mb-0">
+
+                    You Owe The Company
+
+                </p>
+
+                {% else %}
+
+                <h2>
+
+                    0.00 JD
+
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Fully Settled
+
+                </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body text-center">
+
+                <h5 class="mb-3">
+
+                    <i class="fa-solid fa-book"></i>
+
+                    Transactions
+
+                </h5>
+
+                <h2>
+
+                    {{ entries|length }}
+
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Ledger Entries
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body text-center">
+
+                <h5 class="mb-3">
+
+                    <i class="fa-solid fa-chart-line"></i>
+
+                    Balance Status
+
+                </h5>
+
+                {% if user.balance > 0 %}
+
+                <span class="badge bg-success fs-6">
+
+                    Positive
+
+                </span>
+
+                {% elif user.balance < 0 %}
+
+                <span class="badge bg-danger fs-6">
+
+                    Negative
+
+                </span>
+
+                {% else %}
+
+                <span class="badge bg-secondary fs-6">
+
+                    Zero
+
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-12">
+
+        <div class="table-card">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h4>
+
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+
+                    Ledger History
+
+                </h4>
+
+                <input
+                    type="text"
+                    id="ledgerSearch"
+                    class="form-control w-25"
+                    placeholder="Search...">
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table
+                    class="table table-hover align-middle"
+                    id="ledgerTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Order</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Balance After</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for entry in entries %}
+
+                        <tr>
+
+                            <td>
+
+                                #{{ entry.id }}
+
+                            </td>
+
+                            <td>
+
+                                {% if entry.created_at %}
+                                {{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if entry.order_id %}
+                                #{{ entry.order_id }}
+                                {% else %}
+                                -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if entry.transaction_type == "Paid Commission" %}
+
+                                <span class="badge bg-success">
+
+                                    Paid Commission
+
+                                </span>
+
+                                {% elif entry.transaction_type == "Cash Commission" %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Cash Commission
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+
+                                    {{ entry.transaction_type }}
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if entry.amount > 0 %}
+
+                                <span class="text-success fw-bold">
+
+                                    +{{ "%.2f"|format(entry.amount) }}
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="text-danger fw-bold">
+
+                                    {{ "%.2f"|format(entry.amount) }}
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if entry.balance_after > 0 %}
+
+                                <span class="badge bg-success">
+
+                                    +{{ "%.2f"|format(entry.balance_after) }}
+
+                                </span>
+
+                                {% elif entry.balance_after < 0 %}
+
+                                <span class="badge bg-danger">
+
+                                    {{ "%.2f"|format(entry.balance_after) }}
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+
+                                    0.00
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        {% if not entries %}
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="text-center py-5">
+
+                                <i class="fa-solid fa-file-invoice-dollar fa-3x text-muted"></i>
+
+                                <br><br>
+
+                                No Ledger Entries Found
+
+                            </td>
+
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row mt-4">
+
+    <div class="col-12">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body">
+
+                <h5>
+
+                    <i class="fa-solid fa-circle-info"></i>
+
+                    Accounting Rules
+
+                </h5>
+
+                <hr>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <div class="alert alert-success">
+
+                            <strong>Paid Order</strong>
+
+                            <hr>
+
+                            Balance += Commission
+
+                            <br><br>
+
+                            Example:
+
+                            <br>
+
+                            Balance = 7 JD
+
+                            <br>
+
+                            Paid Delivery = 3 JD Commission
+
+                            <br>
+
+                            New Balance = 10 JD
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="alert alert-warning">
+
+                            <strong>Cash Order</strong>
+
+                            <hr>
+
+                            Balance -= Commission
+
+                            <br><br>
+
+                            Example:
+
+                            <br>
+
+                            Balance = 10 JD
+
+                            <br>
+
+                            Cash Delivery = 3 JD Commission
+
+                            <br>
+
+                            New Balance = 7 JD
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-primary mt-3">
+
+                    <strong>Your Requested Logic:</strong>
+
+                    If the company owes the driver 10 JD and the driver completes a cash order with a 3 JD commission, the balance becomes 7 JD because the driver already collected the commission directly. If the next order is paid with a 3 JD commission, the balance becomes 10 JD again because the company now owes that commission to the driver.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+document
+.getElementById(
+"ledgerSearch"
+)
+.addEventListener(
+"keyup",
+function(){
+
+let value =
+this.value
+.toLowerCase();
+
+let rows =
+document.querySelectorAll(
+"#ledgerTable tbody tr"
+);
+
+rows.forEach(row => {
+
+row.style.display =
+row.innerText
+.toLowerCase()
+.includes(value)
+? ""
+: "none";
+
+});
+
+});
+
+</script>
+
+{% endblock %}

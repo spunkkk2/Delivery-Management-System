@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}
+إدارة السائقين
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    {% if is_admin_section %}
+    <div class="col-lg-4">
+
+        <div class="card dashboard-card">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    <i class="fa-solid fa-user-plus"></i>
+                    إضافة سائق
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <form
+                    method="POST"
+                    action="{{ url_for('admin.create_driver') }}">
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            الاسم الكامل
+                        </label>
+
+                        <input
+                            type="text"
+                            name="full_name"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            اسم المستخدم
+                        </label>
+
+                        <input
+                            type="text"
+                            name="username"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            كلمة المرور
+                        </label>
+
+                        <input
+                            type="password"
+                            name="password"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-success w-100">
+
+                        <i class="fa-solid fa-plus"></i>
+
+                        إضافة السائق
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+    <div class="{% if is_admin_section %}col-lg-8{% else %}col-12{% endif %}">
+
+        <div class="table-card">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h4>
+
+                    <i class="fa-solid fa-truck"></i>
+
+                    السائقون
+
+                </h4>
+
+                <span class="badge bg-primary">
+
+                    {{ drivers|length }} سائق
+
+                </span>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>الرقم</th>
+                            <th>الاسم</th>
+                            <th>اسم المستخدم</th>
+                            <th>الحالة</th>
+                            <th>الرصيد</th>
+                            {% if is_admin_section %}
+                            <th>نسبة العمولة</th>
+                            {% endif %}
+                            <th>الحساب</th>
+                            {% if is_admin_section %}
+                            <th>إجراءات</th>
+                            {% endif %}
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for driver in drivers %}
+
+                        <tr>
+
+                            <td>
+
+                                #{{ driver.id }}
+
+                            </td>
+
+                            <td>
+
+                                <strong>
+
+                                    {{ driver.full_name }}
+
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                {{ driver.username }}
+
+                            </td>
+
+                            <td>
+
+                                {% if driver.status == "Available" %}
+
+                                <span class="badge bg-success">
+
+                                    متاح
+
+                                </span>
+
+                                {% elif driver.status == "Busy" %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    مشغول
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-dark">
+
+                                    غير متصل
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if driver.balance > 0 %}
+
+                                <span class="text-success fw-bold">
+
+                                    +{{ "%.2f"|format(driver.balance) }}
+
+                                </span>
+
+                                {% elif driver.balance < 0 %}
+
+                                <span class="text-danger fw-bold">
+
+                                    {{ "%.2f"|format(driver.balance) }}
+
+                                </span>
+
+                                {% else %}
+
+                                0.00
+
+                                {% endif %}
+
+                            </td>
+
+                            {% if is_admin_section %}
+
+                            <td>
+
+                                {{ '%.0f'|format((driver.driver_commission_ratio if driver.driver_commission_ratio is not none else 0.75) * 100) }}%
+
+                            </td>
+
+                            {% endif %}
+
+                            <td>
+
+                                {% if driver.active %}
+
+                                <span class="badge bg-success">
+
+                                    نشط
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-danger">
+
+                                    معطّل
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            {% if is_admin_section %}
+                            <td>
+
+                                <div class="btn-group">
+
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editDriver{{ driver.id }}">
+
+                                        <i class="fa-solid fa-pen"></i>
+
+                                    </button>
+
+                                    <a
+                                        href="{{ url_for('admin.toggle_driver', driver_id=driver.id) }}"
+                                        class="btn btn-sm {% if driver.active %}btn-danger{% else %}btn-success{% endif %}"
+                                        title="{% if driver.active %}تعطيل الحساب{% else %}تفعيل الحساب{% endif %}"
+                                        onclick="return confirm('{% if driver.active %}تعطيل هذا السائق؟ لن يتم حذف طلباته أو سجله، لكنه لن يستطيع تسجيل الدخول أو استلام طلبات جديدة.{% else %}تفعيل هذا السائق؟{% endif %}')">
+
+                                        {% if driver.active %}
+
+                                        <i class="fa-solid fa-ban"></i>
+
+                                        {% else %}
+
+                                        <i class="fa-solid fa-check"></i>
+
+                                        {% endif %}
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+                            {% endif %}
+
+                        </tr>
+
+                        {% if is_admin_section %}
+                        <div
+                            class="modal fade"
+                            id="editDriver{{ driver.id }}">
+
+                            <div class="modal-dialog">
+
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+
+                                        <h5>
+
+                                            تعديل السائق
+
+                                        </h5>
+
+                                        <button
+                                            class="btn-close"
+                                            data-bs-dismiss="modal">
+                                        </button>
+
+                                    </div>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('admin.edit_driver', driver_id=driver.id) }}">
+
+                                        <div class="modal-body">
+
+                                            <div class="mb-3">
+
+                                                <label>
+
+                                                    الاسم الكامل
+
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    name="full_name"
+                                                    value="{{ driver.full_name }}"
+                                                    class="form-control">
+
+                                            </div>
+
+                                            <div class="mb-3">
+
+                                                <label>
+
+                                                    الحالة
+
+                                                </label>
+
+                                                <select
+                                                    name="status"
+                                                    class="form-select">
+
+                                                    <option
+                                                        value="Available"
+                                                        {% if driver.status=="Available" %}selected{% endif %}>
+
+                                                        متاح
+
+                                                    </option>
+
+                                                    <option
+                                                        value="Busy"
+                                                        {% if driver.status=="Busy" %}selected{% endif %}>
+
+                                                        مشغول
+
+                                                    </option>
+
+                                                    <option
+                                                        value="Offline"
+                                                        {% if driver.status=="Offline" %}selected{% endif %}>
+
+                                                        غير متصل
+
+                                                    </option>
+
+                                                </select>
+
+                                            </div>
+
+                                            {% if is_admin_section %}
+
+                                            <div class="mb-3">
+
+                                                <label>
+
+                                                    نسبة عمولة السائق (%)
+
+                                                </label>
+
+                                                <input
+                                                    type="number"
+                                                    name="driver_commission_ratio"
+                                                    value="{{ '%.0f'|format((driver.driver_commission_ratio if driver.driver_commission_ratio is not none else 0.75) * 100) }}"
+                                                    class="form-control"
+                                                    min="0"
+                                                    max="100"
+                                                    step="1"
+                                                    required>
+
+                                                <small class="text-muted">
+
+                                                    تُطبّق على الطلبات المستقبلية فقط
+
+                                                </small>
+
+                                            </div>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                        <div class="modal-footer">
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary">
+
+                                                حفظ
+
+                                            </button>
+
+                                        </div>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if not drivers %}
+
+                        <tr>
+
+                            <td
+                                colspan="{% if is_admin_section %}8{% else %}6{% endif %}"
+                                class="text-center py-5">
+
+                                <i class="fa-solid fa-truck fa-3x text-muted"></i>
+
+                                <br><br>
+
+                                لا يوجد سائقون
+
+                            </td>
+
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

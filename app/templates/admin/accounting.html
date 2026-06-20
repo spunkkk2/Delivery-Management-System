@@ -1,0 +1,1231 @@
+{% extends "base.html" %}
+
+{% block title %}
+المحاسبة
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+.accounting-stat{
+border:none;
+border-radius:18px;
+padding:20px;
+color:white;
+position:relative;
+overflow:hidden;
+min-height:130px;
+}
+
+.accounting-stat .stat-value{
+font-size:1.75rem;
+font-weight:700;
+}
+
+.accounting-stat .stat-label{
+opacity:.92;
+font-size:.95rem;
+}
+
+.accounting-stat .stat-icon{
+position:absolute;
+left:18px;
+bottom:14px;
+font-size:2.2rem;
+opacity:.25;
+}
+
+[dir="rtl"] .accounting-stat .stat-icon{
+left:auto;
+right:18px;
+}
+
+.stat-revenue{background:linear-gradient(135deg,#059669,#10b981);}
+.stat-expense{background:linear-gradient(135deg,#dc2626,#ef4444);}
+.stat-profit{background:linear-gradient(135deg,#2563eb,#3b82f6);}
+.stat-orders{background:linear-gradient(135deg,#7c3aed,#8b5cf6);}
+.stat-cash{background:linear-gradient(135deg,#d97706,#f59e0b);}
+.stat-payable{background:linear-gradient(135deg,#0891b2,#06b6d4);}
+
+.income-row{
+display:flex;
+justify-content:space-between;
+padding:10px 0;
+border-bottom:1px dashed rgba(0,0,0,.08);
+}
+
+.income-row:last-child{
+border-bottom:none;
+}
+
+.income-total{
+font-size:1.15rem;
+font-weight:700;
+padding-top:12px;
+margin-top:8px;
+border-top:2px solid rgba(0,0,0,.1);
+}
+
+.filter-card{
+background:linear-gradient(135deg,#111827,#1f2937);
+border-radius:18px;
+padding:20px;
+box-shadow:0 10px 25px rgba(0,0,0,.18);
+border:1px solid rgba(255,255,255,.08);
+color:#f9fafb;
+}
+
+.filter-card .form-label{
+color:#e5e7eb;
+font-weight:500;
+margin-bottom:.35rem;
+}
+
+.filter-card .form-control,
+.filter-card .form-select{
+background:#0f172a;
+border-color:#374151;
+color:#f9fafb;
+}
+
+.filter-card .form-control:focus,
+.filter-card .form-select:focus{
+background:#0f172a;
+border-color:#3b82f6;
+color:#f9fafb;
+box-shadow:0 0 0 .2rem rgba(59,130,246,.25);
+}
+
+.filter-card .form-control::placeholder{
+color:#9ca3af;
+}
+
+.filter-card .form-select option{
+background:#1f2937;
+color:#f9fafb;
+}
+
+.filter-card .btn-outline-secondary{
+color:#e5e7eb;
+border-color:#4b5563;
+}
+
+.filter-card .btn-outline-secondary:hover,
+.filter-card .btn-outline-secondary:focus{
+background:#374151;
+border-color:#6b7280;
+color:#fff;
+}
+
+[data-bs-theme="dark"] .filter-card{
+background:linear-gradient(135deg,#0f172a,#111827);
+border-color:rgba(255,255,255,.12);
+}
+
+[data-bs-theme="dark"] .filter-card .form-control,
+[data-bs-theme="dark"] .filter-card .form-select{
+background:#111827;
+border-color:#4b5563;
+}
+
+.sort-link{
+text-decoration:none;
+color:inherit;
+white-space:nowrap;
+}
+
+.sort-link.active{
+color:var(--primary);
+font-weight:700;
+}
+
+.category-pill{
+display:inline-block;
+padding:4px 10px;
+border-radius:999px;
+font-size:.8rem;
+background:#eef2ff;
+color:#3730a3;
+}
+
+.expense-form-card{
+border:2px dashed #16a34a;
+border-radius:18px;
+background:rgba(22,163,74,.04);
+}
+
+.profit-positive{color:#059669;}
+.profit-negative{color:#dc2626;}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+<div>
+
+<h2 class="fw-bold mb-1">
+
+<i class="fa-solid fa-calculator text-primary"></i>
+
+المحاسبة
+
+</h2>
+
+<p class="text-muted mb-0">
+
+من {{ filters.date_from }} إلى {{ filters.date_to }}
+
+</p>
+
+</div>
+
+<span class="badge bg-dark p-2">
+
+{{ delivered_count }} طلب مُسلّم
+
+</span>
+
+</div>
+
+<div class="filter-card mb-4">
+
+<form
+method="GET"
+action="{{ url_for('admin.accounting') }}"
+class="row g-3 align-items-end">
+
+<div class="col-md-2">
+
+<label class="form-label">من تاريخ</label>
+
+<input
+type="date"
+name="date_from"
+value="{{ filters.date_from.isoformat() }}"
+class="form-control">
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">إلى تاريخ</label>
+
+<input
+type="date"
+name="date_to"
+value="{{ filters.date_to.isoformat() }}"
+class="form-control">
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">نوع الدفع</label>
+
+<select
+name="payment_type"
+class="form-select select-native">
+
+<option value="">الكل</option>
+
+<option
+value="Cash"
+{% if filters.payment_type == 'Cash' %}selected{% endif %}>
+
+نقدي
+
+</option>
+
+<option
+value="Paid"
+{% if filters.payment_type == 'Paid' %}selected{% endif %}>
+
+مدفوع
+
+</option>
+
+</select>
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">السائق</label>
+
+<select
+name="driver_id"
+class="form-select select-native">
+
+<option value="">الكل</option>
+
+{% for driver in all_drivers %}
+
+<option
+value="{{ driver.id }}"
+{% if filters.driver_id == driver.id|string %}selected{% endif %}>
+
+{{ driver.full_name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">المحل</label>
+
+<select
+name="shop_id"
+class="form-select select-native">
+
+<option value="">الكل</option>
+
+{% for shop in all_shops %}
+
+<option
+value="{{ shop.id }}"
+{% if filters.shop_id == shop.id|string %}selected{% endif %}>
+
+{{ shop.name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">فئة المصروف</label>
+
+<select
+name="category"
+class="form-select select-native">
+
+<option value="">الكل</option>
+
+{% for cat in expense_categories %}
+
+<option
+value="{{ cat }}"
+{% if filters.category == cat %}selected{% endif %}>
+
+{{ cat }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<input
+type="hidden"
+name="sort"
+value="{{ filters.sort }}">
+
+<div class="col-12 d-flex gap-2 flex-wrap">
+
+<button
+type="submit"
+class="btn btn-primary">
+
+<i class="fa-solid fa-filter"></i>
+
+تطبيق الفلاتر
+
+</button>
+
+<a
+href="{{ url_for('admin.accounting') }}"
+class="btn btn-outline-secondary">
+
+إعادة ضبط
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+<div class="row g-3 mb-4">
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-revenue">
+
+<div class="stat-value">
+
+{{ "%.2f"|format(total_revenue) }}
+
+</div>
+
+<div class="stat-label">
+
+إيراد الشركة
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-sack-dollar"></i>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-expense">
+
+<div class="stat-value">
+
+{{ "%.2f"|format(total_expenses) }}
+
+</div>
+
+<div class="stat-label">
+
+مصروفات
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-receipt"></i>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-profit">
+
+<div class="stat-value {% if net_profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+
+{{ "%.2f"|format(net_profit) }}
+
+</div>
+
+<div class="stat-label">
+
+صافي الربح
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-chart-line"></i>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-orders">
+
+<div class="stat-value">
+
+{{ delivered_count }}
+
+</div>
+
+<div class="stat-label">
+
+طلبات مُسلّمة
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-box"></i>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-cash">
+
+<div class="stat-value">
+
+{{ margin_percent }}%
+
+</div>
+
+<div class="stat-label">
+
+هامش الشركة
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-percent"></i>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-xl-2 col-md-4">
+
+<div class="accounting-stat stat-payable">
+
+<div class="stat-value">
+
+{{ "%.2f"|format(avg_order_revenue) }}
+
+</div>
+
+<div class="stat-label">
+
+متوسط ربح / طلب
+
+</div>
+
+<div class="stat-icon">
+
+<i class="fa-solid fa-coins"></i>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+<div class="col-lg-5">
+
+<div class="chart-card h-100">
+
+<h5 class="mb-3">
+
+<i class="fa-solid fa-file-invoice-dollar text-primary"></i>
+
+بيان الدخل
+
+</h5>
+
+<div class="income-row">
+
+<span>إجمالي رسوم التوصيل</span>
+
+<strong>{{ "%.2f"|format(total_commission) }} د.أ</strong>
+
+</div>
+
+<div class="income-row text-danger">
+
+<span>
+
+<i class="fa-solid fa-minus"></i>
+
+عمولات السائقين
+
+</span>
+
+<strong>- {{ "%.2f"|format(total_driver_commission) }} د.أ</strong>
+
+</div>
+
+<div class="income-row text-success fw-bold">
+
+<span>
+
+<i class="fa-solid fa-equals"></i>
+
+إيراد الشركة من التوصيل
+
+</span>
+
+<strong>{{ "%.2f"|format(total_revenue) }} د.أ</strong>
+
+</div>
+
+<div class="income-row text-danger">
+
+<span>
+
+<i class="fa-solid fa-minus"></i>
+
+مصروفات التشغيل
+
+</span>
+
+<strong>- {{ "%.2f"|format(total_expenses) }} د.أ</strong>
+
+</div>
+
+<div class="income-row income-total {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+
+<span>صافي الربح</span>
+
+<strong>{{ "%.2f"|format(net_profit) }} د.أ</strong>
+
+</div>
+
+<hr>
+
+<h6 class="text-muted mb-3">حسب نوع الدفع</h6>
+
+<div class="income-row">
+
+<span>
+
+<span class="badge bg-warning text-dark">نقدي</span>
+
+{{ cash_count }} طلب
+
+</span>
+
+<strong>{{ "%.2f"|format(cash_revenue) }} د.أ</strong>
+
+</div>
+
+<div class="income-row">
+
+<span>
+
+<span class="badge bg-success">مدفوع</span>
+
+{{ paid_count }} طلب
+
+</span>
+
+<strong>{{ "%.2f"|format(paid_revenue) }} د.أ</strong>
+
+</div>
+
+<hr>
+
+<h6 class="text-muted mb-3">الذمم الحالية</h6>
+
+<div class="income-row">
+
+<span class="text-danger">مدفوعات للسائقين</span>
+
+<strong class="text-danger">{{ "%.2f"|format(company_owes_drivers) }} د.أ</strong>
+
+</div>
+
+<div class="income-row">
+
+<span class="text-success">مستحقات من السائقين</span>
+
+<strong class="text-success">{{ "%.2f"|format(drivers_owe_company) }} د.أ</strong>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-7">
+
+<div class="chart-card h-100">
+
+<h5 class="mb-3">
+
+<i class="fa-solid fa-chart-area text-success"></i>
+
+الإيراد اليومي
+
+</h5>
+
+<canvas id="revenueChart" height="120"></canvas>
+
+<div class="row mt-4">
+
+{% for cat, amount in expense_by_category.items() %}
+
+<div class="col-md-6 mb-2">
+
+<div class="d-flex justify-content-between align-items-center p-2 rounded bg-light">
+
+<span class="category-pill">{{ cat }}</span>
+
+<strong class="text-danger">{{ "%.2f"|format(amount) }} د.أ</strong>
+
+</div>
+
+</div>
+
+{% else %}
+
+<div class="col-12 text-muted text-center py-3">
+
+لا توجد مصروفات في هذه الفترة
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+<div class="col-lg-4">
+
+<div class="card dashboard-card expense-form-card">
+
+<div class="card-header bg-success text-white">
+
+<h5 class="mb-0">
+
+<i class="fa-solid fa-plus-circle"></i>
+
+إضافة مصروف
+
+</h5>
+
+</div>
+
+<div class="card-body">
+
+<form
+method="POST"
+action="{{ url_for('admin.add_expense') }}">
+
+<input
+type="hidden"
+name="date_from"
+value="{{ filters.date_from.isoformat() }}">
+
+<input
+type="hidden"
+name="date_to"
+value="{{ filters.date_to.isoformat() }}">
+
+<input
+type="hidden"
+name="payment_type"
+value="{{ filters.payment_type }}">
+
+<input
+type="hidden"
+name="driver_id"
+value="{{ filters.driver_id }}">
+
+<input
+type="hidden"
+name="shop_id"
+value="{{ filters.shop_id }}">
+
+<input
+type="hidden"
+name="filter_category"
+value="{{ filters.category }}">
+
+<input
+type="hidden"
+name="sort"
+value="{{ filters.sort }}">
+
+<div class="mb-3">
+
+<label class="form-label">الوصف</label>
+
+<input
+type="text"
+name="description"
+class="form-control"
+placeholder="مثال: إيجار المكتب"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">المبلغ (د.أ)</label>
+
+<input
+type="number"
+step="0.01"
+min="0.01"
+name="amount"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">التاريخ</label>
+
+<input
+type="date"
+name="expense_date"
+value="{{ filters.date_to.isoformat() }}"
+class="form-control"
+required>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">الفئة</label>
+
+<select
+name="category"
+class="form-select select-native">
+
+{% for cat in expense_categories %}
+
+<option value="{{ cat }}">{{ cat }}</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">ملاحظات</label>
+
+<textarea
+name="notes"
+rows="2"
+class="form-control"
+placeholder="اختياري"></textarea>
+
+</div>
+
+<button
+type="submit"
+class="btn btn-success w-100">
+
+<i class="fa-solid fa-save"></i>
+
+حفظ المصروف
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+<h5 class="mb-0">
+
+<i class="fa-solid fa-receipt text-danger"></i>
+
+المصروفات
+
+</h5>
+
+<span class="badge bg-danger">
+
+{{ expenses|length }} مصروف
+
+</span>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead>
+
+<tr>
+
+<th>التاريخ</th>
+<th>الوصف</th>
+<th>الفئة</th>
+<th>المبلغ</th>
+<th>ملاحظات</th>
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for expense in expenses %}
+
+<tr>
+
+<td>
+
+{{ expense.expense_date.strftime('%Y-%m-%d') }}
+
+</td>
+
+<td>
+
+<strong>{{ expense.description }}</strong>
+
+<br>
+
+<small class="text-muted">{{ expense.created_by }}</small>
+
+</td>
+
+<td>
+
+<span class="category-pill">{{ expense.category }}</span>
+
+</td>
+
+<td>
+
+<strong class="text-danger">
+
+{{ "%.2f"|format(expense.amount) }} د.أ
+
+</strong>
+
+</td>
+
+<td>
+
+{{ expense.notes or '-' }}
+
+</td>
+
+<td>
+
+<form
+method="POST"
+action="{{ url_for('admin.delete_expense', expense_id=expense.id) }}"
+onsubmit="return confirm('حذف هذا المصروف؟')">
+
+<input type="hidden" name="date_from" value="{{ filters.date_from.isoformat() }}">
+<input type="hidden" name="date_to" value="{{ filters.date_to.isoformat() }}">
+<input type="hidden" name="payment_type" value="{{ filters.payment_type }}">
+<input type="hidden" name="driver_id" value="{{ filters.driver_id }}">
+<input type="hidden" name="shop_id" value="{{ filters.shop_id }}">
+<input type="hidden" name="filter_category" value="{{ filters.category }}">
+<input type="hidden" name="sort" value="{{ filters.sort }}">
+
+<button class="btn btn-sm btn-outline-danger">
+
+<i class="fa-solid fa-trash"></i>
+
+</button>
+
+</form>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+
+<td
+colspan="6"
+class="text-center py-4 text-muted">
+
+لا توجد مصروفات — أضف مصروفاً من النموذج
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+<h5 class="mb-0">
+
+<i class="fa-solid fa-list-check text-primary"></i>
+
+تفاصيل الطلبات المالية
+
+</h5>
+
+<div class="d-flex gap-2 flex-wrap">
+
+<a
+class="sort-link {% if filters.sort == 'date_desc' %}active{% endif %}"
+href="{{ url_for('admin.accounting', date_from=filters.date_from.isoformat(), date_to=filters.date_to.isoformat(), payment_type=filters.payment_type, driver_id=filters.driver_id, shop_id=filters.shop_id, category=filters.category, sort='date_desc') }}">
+
+الأحدث
+
+</a>
+
+<a
+class="sort-link {% if filters.sort == 'date_asc' %}active{% endif %}"
+href="{{ url_for('admin.accounting', date_from=filters.date_from.isoformat(), date_to=filters.date_to.isoformat(), payment_type=filters.payment_type, driver_id=filters.driver_id, shop_id=filters.shop_id, category=filters.category, sort='date_asc') }}">
+
+الأقدم
+
+</a>
+
+<a
+class="sort-link {% if filters.sort == 'revenue_desc' %}active{% endif %}"
+href="{{ url_for('admin.accounting', date_from=filters.date_from.isoformat(), date_to=filters.date_to.isoformat(), payment_type=filters.payment_type, driver_id=filters.driver_id, shop_id=filters.shop_id, category=filters.category, sort='revenue_desc') }}">
+
+أعلى ربح
+
+</a>
+
+<a
+class="sort-link {% if filters.sort == 'commission_desc' %}active{% endif %}"
+href="{{ url_for('admin.accounting', date_from=filters.date_from.isoformat(), date_to=filters.date_to.isoformat(), payment_type=filters.payment_type, driver_id=filters.driver_id, shop_id=filters.shop_id, category=filters.category, sort='commission_desc') }}">
+
+أعلى رسوم
+
+</a>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-hover align-middle">
+
+<thead class="table-light">
+
+<tr>
+
+<th>#</th>
+<th>التاريخ</th>
+<th>المحل</th>
+<th>السائق</th>
+<th>الدفع</th>
+<th>رسوم التوصيل</th>
+<th>عمولة السائق</th>
+<th>ربح الشركة</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr>
+
+<td>
+
+<strong>#{{ order.id }}</strong>
+
+</td>
+
+<td>
+
+{{ order.created_at.strftime('%Y-%m-%d') }}
+
+</td>
+
+<td>
+
+{% if order.shop %}
+{{ order.shop.name }}
+{% else %}
+-
+{% endif %}
+
+</td>
+
+<td>
+
+{% if order.driver %}
+{{ order.driver.full_name }}
+{% else %}
+-
+{% endif %}
+
+</td>
+
+<td>
+
+{% if order.payment_type == 'Paid' %}
+
+<span class="badge bg-success">مدفوع</span>
+
+{% else %}
+
+<span class="badge bg-warning text-dark">نقدي</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(order.commission) }} د.أ
+
+</td>
+
+<td>
+
+<span class="text-warning">
+
+{{ "%.2f"|format(order.driver_commission) }} د.أ
+
+</span>
+
+</td>
+
+<td>
+
+<strong class="text-success">
+
+{{ "%.2f"|format(order.commission - order.driver_commission) }} د.أ
+
+</strong>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+
+<td
+colspan="8"
+class="text-center py-5 text-muted">
+
+<i class="fa-solid fa-chart-pie fa-3x mb-3 d-block"></i>
+
+لا توجد طلبات مُسلّمة في هذه الفترة
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+<tfoot class="table-light fw-bold">
+
+<tr>
+
+<td colspan="5">
+
+الإجمالي
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(total_commission) }} د.أ
+
+</td>
+
+<td>
+
+{{ "%.2f"|format(total_driver_commission) }} د.أ
+
+</td>
+
+<td class="text-success">
+
+{{ "%.2f"|format(total_revenue) }} د.أ
+
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
+
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+new Chart(
+document.getElementById("revenueChart"),
+{
+type:"line",
+data:{
+labels:{{ chart_labels | tojson }},
+datasets:[{
+label:"إيراد الشركة (د.أ)",
+data:{{ chart_values | tojson }},
+borderColor:"#059669",
+backgroundColor:"rgba(5,150,105,.12)",
+fill:true,
+tension:.35,
+pointRadius:4,
+pointBackgroundColor:"#059669"
+}]
+},
+options:{
+plugins:{
+legend:{display:false}
+},
+scales:{
+y:{beginAtZero:true}
+}
+}
+}
+);
+
+</script>
+
+{% endblock %}

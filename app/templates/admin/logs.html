@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}
+سجل النشاط
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+
+<div class="col-12">
+
+<div class="table-card">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<div>
+
+<h4 class="mb-1">
+
+<i class="fa-solid fa-list-check"></i>
+
+سجل النشاط
+
+</h4>
+
+<p class="text-muted mb-0">
+
+سجل تدقيق النظام
+
+</p>
+
+</div>
+
+<div class="d-flex gap-2">
+
+<input
+type="text"
+id="logSearch"
+class="form-control"
+placeholder="بحث في السجل...">
+
+<span class="badge bg-primary p-3">
+
+{{ logs|length }} سجل
+
+</span>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table
+class="table table-hover align-middle"
+id="logsTable">
+
+<thead>
+
+<tr>
+
+<th>الرقم</th>
+<th>التاريخ والوقت</th>
+<th>المستخدم</th>
+<th>الإجراء</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for log in logs %}
+
+<tr>
+
+<td>
+
+#{{ log.id }}
+
+</td>
+
+<td>
+
+{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+
+</td>
+
+<td>
+
+<span class="badge bg-secondary">
+
+{{ log.username }}
+
+</span>
+
+</td>
+
+<td>
+
+{% if 'Login' in log.action %}
+
+<span class="badge bg-success me-2">
+
+<i class="fa-solid fa-right-to-bracket"></i>
+
+تسجيل الدخول
+
+</span>
+
+{% elif 'Logout' in log.action %}
+
+<span class="badge bg-dark me-2">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+
+تسجيل الخروج
+
+</span>
+
+{% elif 'Create Order' in log.action %}
+
+<span class="badge bg-primary me-2">
+
+<i class="fa-solid fa-box"></i>
+
+طلب
+
+</span>
+
+{% elif 'Assign Driver' in log.action %}
+
+<span class="badge bg-warning text-dark me-2">
+
+<i class="fa-solid fa-truck"></i>
+
+تعيين
+
+</span>
+
+{% elif 'Delivered' in log.action %}
+
+<span class="badge bg-success me-2">
+
+<i class="fa-solid fa-circle-check"></i>
+
+تم التوصيل
+
+</span>
+
+{% elif 'Create User' in log.action or 'Created User' in log.action %}
+
+<span class="badge bg-info me-2">
+
+<i class="fa-solid fa-user-plus"></i>
+
+مستخدم
+
+</span>
+
+{% endif %}
+
+{{ log.action }}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+{% if not logs %}
+
+<tr>
+
+<td
+colspan="4"
+class="text-center py-5">
+
+<i class="fa-solid fa-database fa-3x text-muted mb-3"></i>
+
+<br>
+
+لا يوجد سجل نشاط
+
+</td>
+
+</tr>
+
+{% endif %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="row mt-4">
+
+<div class="col-12">
+
+<div class="card dashboard-card">
+
+<div class="card-body">
+
+<h5>
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+الأحداث المتتبعة
+
+</h5>
+
+<hr>
+
+<div class="row">
+
+<div class="col-md-3">
+
+<ul class="list-group">
+
+<li class="list-group-item">
+
+تسجيل الدخول
+
+</li>
+
+<li class="list-group-item">
+
+تسجيل الخروج
+
+</li>
+
+<li class="list-group-item">
+
+إنشاء مستخدم
+
+</li>
+
+<li class="list-group-item">
+
+تعديل مستخدم
+
+</li>
+
+</ul>
+
+</div>
+
+<div class="col-md-3">
+
+<ul class="list-group">
+
+<li class="list-group-item">
+
+إنشاء طلب
+
+</li>
+
+<li class="list-group-item">
+
+تعديل طلب
+
+</li>
+
+<li class="list-group-item">
+
+إلغاء طلب
+
+</li>
+
+<li class="list-group-item">
+
+تعيين سائق
+
+</li>
+
+</ul>
+
+</div>
+
+<div class="col-md-3">
+
+<ul class="list-group">
+
+<li class="list-group-item">
+
+إعادة تعيين سائق
+
+</li>
+
+<li class="list-group-item">
+
+قبول طلب
+
+</li>
+
+<li class="list-group-item">
+
+رفض طلب
+
+</li>
+
+<li class="list-group-item">
+
+تم الاستلام
+
+</li>
+
+</ul>
+
+</div>
+
+<div class="col-md-3">
+
+<ul class="list-group">
+
+<li class="list-group-item">
+
+تم التوصيل
+
+</li>
+
+<li class="list-group-item">
+
+إنشاء محل
+
+</li>
+
+<li class="list-group-item">
+
+تعديل محل
+
+</li>
+
+<li class="list-group-item">
+
+تغييرات الرصيد
+
+</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+document
+.getElementById(
+"logSearch"
+)
+.addEventListener(
+"keyup",
+function(){
+
+let value =
+this.value
+.toLowerCase();
+
+let rows =
+document.querySelectorAll(
+"#logsTable tbody tr"
+);
+
+rows.forEach(row=>{
+
+row.style.display =
+row.innerText
+.toLowerCase()
+.includes(value)
+? ""
+: "none";
+
+});
+
+});
+
+</script>
+
+{% endblock %}
