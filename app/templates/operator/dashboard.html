@@ -214,7 +214,8 @@ required>
 value="{{ shop.id }}"
 data-place="{{ shop.place.name if shop.place else '' }}"
 data-place-id="{{ shop.place_id or '' }}"
-data-location="{{ shop.location_details or '' }}">
+data-location="{{ shop.location_details or '' }}"
+data-discount="{{ shop.discount_ratio or 0 }}">
 
 {{ shop.name }}
 
@@ -688,6 +689,34 @@ const routeCommissions =
 const defaultCommission =
 {{ commission.default_commission }};
 
+function applyShopDiscount(
+baseCommission,
+discountRatio
+){
+
+const discount =
+parseFloat(
+discountRatio
+) || 0;
+
+if(
+discount <= 0
+){
+return baseCommission;
+}
+
+const capped =
+Math.min(
+discount,
+100
+);
+
+return baseCommission * (
+1 - capped / 100
+);
+
+}
+
 document.addEventListener(
 "DOMContentLoaded",
 function(){
@@ -777,14 +806,20 @@ routeCommissions[routeKey]
 
 commissionField.value =
 Number(
-routeCommissions[routeKey]
+applyShopDiscount(
+routeCommissions[routeKey],
+shopOption.dataset.discount
+)
 ).toFixed(2);
 
 }else{
 
 commissionField.value =
 Number(
-defaultCommission
+applyShopDiscount(
+defaultCommission,
+shopOption.dataset.discount
+)
 ).toFixed(2);
 
 }

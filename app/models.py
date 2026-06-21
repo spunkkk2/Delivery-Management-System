@@ -142,6 +142,11 @@ class Shop(db.Model):
         db.Text
     )
 
+    discount_ratio = db.Column(
+        db.Float,
+        default=0
+    )
+
 
 class Order(db.Model):
 

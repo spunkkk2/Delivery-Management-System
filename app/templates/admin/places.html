@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}
+المناطق
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+<h3 class="mb-4">
+
+المناطق والعمولات
+
+</h3>
+
+<div class="card mb-4">
+
+<div class="card-header">
+
+إنشاء مسار
+
+</div>
+
+<div class="card-body">
+
+<form
+method="POST"
+action="{{ url_for('admin.create_place') }}">
+
+<div class="row g-3">
+
+<div class="col-md-4">
+
+<label class="form-label">
+
+من منطقة
+
+</label>
+
+<input
+type="text"
+name="from_place"
+class="form-control"
+required>
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label">
+
+إلى منطقة
+
+</label>
+
+<input
+type="text"
+name="to_place"
+class="form-control"
+required>
+
+</div>
+
+<div class="col-md-2">
+
+<label class="form-label">
+
+العمولة
+
+</label>
+
+<input
+type="number"
+step="0.01"
+name="commission"
+class="form-control"
+required>
+
+</div>
+
+<div class="col-md-2 d-flex align-items-end">
+
+<button
+type="submit"
+class="btn btn-primary w-100">
+
+حفظ
+
+</button>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="col-lg-4">
+
+<div class="card">
+
+<div class="card-header">
+
+المناطق المحفوظة
+
+</div>
+
+<div class="card-body">
+
+<table class="table table-sm">
+
+<thead>
+
+<tr>
+
+<th>الرقم</th>
+
+<th>الاسم</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for place in places %}
+
+<tr>
+
+<td>
+
+{{ place.id }}
+
+</td>
+
+<td>
+
+{{ place.name }}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-8">
+
+<div class="card">
+
+<div class="card-header">
+
+المسارات المحفوظة
+
+</div>
+
+<div class="card-body">
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>من</th>
+
+<th>إلى</th>
+
+<th>العمولة</th>
+
+<th>إجراءات</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for route in routes %}
+
+<tr>
+
+<td>
+
+{{ route.from_place.name }}
+
+</td>
+
+<td>
+
+{{ route.to_place.name }}
+
+</td>
+
+<td>
+
+{{ route.commission }} د.أ
+
+</td>
+
+<td>
+
+<a
+href="{{ url_for('admin.delete_route', route_id=route.id) }}"
+class="btn btn-sm btn-danger">
+
+حذف
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

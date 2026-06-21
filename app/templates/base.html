@@ -13,7 +13,7 @@ content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="مهرة">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="{% if is_login_page %}#0b1d3a{% else %}#000000{% endif %}">
 <meta name="application-name" content="مهرة">
 
 <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
@@ -194,12 +194,12 @@ margin-right:0;
 
 min-height:100vh;
 
-background:#000000;
+background:#0b1d3a;
 }
 
 .main-content.login-layout .content-wrapper{
 
-background:#000000;
+background:#0b1d3a;
 
 min-height:100vh;
 }
@@ -544,6 +544,18 @@ href="{{ url_for('admin.shops') }}">
 <i class="fa-solid fa-store"></i>
 
 المحلات
+
+</a>
+</li>
+
+<li>
+<a
+class="nav-link{% if request.endpoint in ['admin.places', 'admin.create_place', 'admin.delete_route'] %} active{% endif %}"
+href="{{ url_for('admin.places') }}">
+
+<i class="fa-solid fa-location-dot"></i>
+
+المناطق
 
 </a>
 </li>

@@ -2,7 +2,8 @@ from . import db
 from .models import (
     ActivityLog,
     Setting,
-    Shop
+    Shop,
+    RouteCommission
 )
 
 
@@ -25,6 +26,98 @@ def get_driver_commission_ratio(
         return setting.driver_commission_ratio
 
     return 0.75
+
+
+def apply_shop_discount(
+    commission,
+    shop
+):
+
+    if not shop:
+        return round(
+            float(commission),
+            2
+        )
+
+    discount = float(
+        shop.discount_ratio or 0
+    )
+
+    if discount <= 0:
+        return round(
+            float(commission),
+            2
+        )
+
+    discount = min(
+        discount,
+        100
+    )
+
+    return round(
+        float(commission) * (
+            1 - discount / 100
+        ),
+        2
+    )
+
+
+def get_route_commission(
+    from_place_id,
+    to_place_id
+):
+
+    if not from_place_id or not to_place_id:
+        return None
+
+    route = RouteCommission.query.filter_by(
+        from_place_id=from_place_id,
+        to_place_id=to_place_id
+    ).first()
+
+    if not route:
+        return None
+
+    return float(
+        route.commission
+    )
+
+
+def resolve_delivery_commission(
+    shop,
+    destination_place_id,
+    form_commission,
+    default_commission
+):
+
+    form_value = float(
+        form_commission
+    )
+
+    base = get_route_commission(
+        shop.place_id,
+        destination_place_id
+    )
+
+    if base is None:
+        base = float(
+            default_commission
+        )
+
+    discounted = apply_shop_discount(
+        base,
+        shop
+    )
+
+    if abs(
+        form_value - base
+    ) < 0.01:
+        return discounted
+
+    return round(
+        form_value,
+        2
+    )
 
 
 def calculate_driver_commission(

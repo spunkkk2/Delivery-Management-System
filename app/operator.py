@@ -35,7 +35,8 @@ from .models import (
 
 from .services import (
     log_activity,
-    sync_order_driver_commission
+    sync_order_driver_commission,
+    resolve_delivery_commission
 )
 
 operator_bp = Blueprint(
@@ -176,16 +177,34 @@ def create_order():
         )
     )
 
+    setting = Setting.query.first()
+
+    default_commission = (
+        setting.default_commission
+        if setting
+        else 3
+    )
+
     commission = request.form.get(
         "commission"
     )
 
     if not commission:
 
-        commission = (
-            Setting.query.first()
-            .default_commission
-        )
+        commission = default_commission
+
+    destination_place_id = int(
+        request.form[
+            "destination_place_id"
+        ]
+    )
+
+    commission = resolve_delivery_commission(
+        shop,
+        destination_place_id,
+        commission,
+        default_commission
+    )
 
     amount_paid_to_shop = float(
         request.form[
@@ -194,7 +213,7 @@ def create_order():
     )
 
     amount_received_from_customer = (
-        float(commission)
+        commission
         + amount_paid_to_shop
     )
 
@@ -251,19 +270,13 @@ def create_order():
 
         order_total=amount_paid_to_shop,
 
-        commission=float(
-            commission
-        ),
+        commission=commission,
 
         payment_type=request.form[
             "payment_type"
         ],
 
-        destination_place_id=int(
-            request.form[
-                "destination_place_id"
-            ]
-        ),
+        destination_place_id=destination_place_id,
 
         created_by=current_user().username,
 
@@ -377,8 +390,19 @@ def edit_order(order_id):
         request.form["order_total"]
     )
 
-    order.commission = float(
-        request.form["commission"]
+    setting = Setting.query.first()
+
+    default_commission = (
+        setting.default_commission
+        if setting
+        else 3
+    )
+
+    order.commission = resolve_delivery_commission(
+        shop,
+        order.destination_place_id,
+        request.form["commission"],
+        default_commission
     )
 
     sync_order_driver_commission(order)

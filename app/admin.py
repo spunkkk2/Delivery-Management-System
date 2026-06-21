@@ -33,7 +33,9 @@ from .models import (
     Setting,
     ActivityLog,
     DriverLedger,
-    CompanyExpense
+    CompanyExpense,
+    Place,
+    RouteCommission
 )
 
 from .services import (
@@ -710,6 +712,24 @@ def edit_shop(shop_id):
 
     shop.notes = request.form["notes"]
 
+    try:
+        discount_ratio = float(
+            request.form.get(
+                "discount_ratio",
+                0
+            ) or 0
+        )
+    except ValueError:
+        discount_ratio = 0
+
+    shop.discount_ratio = max(
+        0,
+        min(
+            100,
+            discount_ratio
+        )
+    )
+
     db.session.commit()
 
     log_activity(
@@ -718,7 +738,7 @@ def edit_shop(shop_id):
     )
 
     return redirect(
-        url_for("shops.html")
+        url_for("admin.shops")
     )
 
 
@@ -744,6 +764,223 @@ def delete_shop(shop_id):
 
     return redirect(
         url_for("admin.shops.html")
+    )
+
+
+####################################################
+# PLACES
+####################################################
+
+@admin_bp.route("/places")
+@role_required("admin")
+def places():
+
+    places = (
+        Place.query
+        .order_by(
+            Place.name
+        )
+        .all()
+    )
+
+    all_routes = RouteCommission.query.all()
+
+    seen = set()
+
+    routes = []
+
+    for route in all_routes:
+
+        pair = tuple(
+            sorted([
+                route.from_place_id,
+                route.to_place_id
+            ])
+        )
+
+        if pair in seen:
+            continue
+
+        seen.add(pair)
+
+        routes.append(route)
+
+    return render_template(
+        "admin/places.html",
+        user=current_user(),
+        places=places,
+        routes=routes
+    )
+
+
+@admin_bp.route(
+    "/places/create",
+    methods=["POST"]
+)
+@role_required("admin")
+def create_place():
+
+    from_place_name = (
+        request.form.get(
+            "from_place",
+            ""
+        ).strip()
+    )
+
+    to_place_name = (
+        request.form.get(
+            "to_place",
+            ""
+        ).strip()
+    )
+
+    commission = float(
+        request.form.get(
+            "commission",
+            0
+        )
+    )
+
+    if not from_place_name or not to_place_name:
+
+        return redirect(
+            url_for(
+                "admin.places"
+            )
+        )
+
+    from_place = Place.query.filter_by(
+        name=from_place_name
+    ).first()
+
+    if not from_place:
+
+        from_place = Place(
+            name=from_place_name
+        )
+
+        db.session.add(
+            from_place
+        )
+
+        db.session.flush()
+
+    to_place = Place.query.filter_by(
+        name=to_place_name
+    ).first()
+
+    if not to_place:
+
+        to_place = Place(
+            name=to_place_name
+        )
+
+        db.session.add(
+            to_place
+        )
+
+        db.session.flush()
+
+    route1 = RouteCommission.query.filter_by(
+        from_place_id=from_place.id,
+        to_place_id=to_place.id
+    ).first()
+
+    if not route1:
+
+        db.session.add(
+            RouteCommission(
+                from_place_id=from_place.id,
+                to_place_id=to_place.id,
+                commission=commission
+            )
+        )
+
+    route2 = RouteCommission.query.filter_by(
+        from_place_id=to_place.id,
+        to_place_id=from_place.id
+    ).first()
+
+    if not route2:
+
+        db.session.add(
+            RouteCommission(
+                from_place_id=to_place.id,
+                to_place_id=from_place.id,
+                commission=commission
+            )
+        )
+
+    db.session.commit()
+
+    log_activity(
+        current_user().username,
+        f"Created route: {from_place_name} - {to_place_name}"
+    )
+
+    return redirect(
+        url_for(
+            "admin.places"
+        )
+    )
+
+
+@admin_bp.route(
+    "/places/delete-route/<int:route_id>"
+)
+@role_required("admin")
+def delete_route(route_id):
+
+    route = RouteCommission.query.get_or_404(
+        route_id
+    )
+
+    reverse_route = (
+        RouteCommission.query
+        .filter_by(
+            from_place_id=route.to_place_id,
+            to_place_id=route.from_place_id
+        )
+        .first()
+    )
+
+    db.session.delete(route)
+
+    if reverse_route:
+        db.session.delete(reverse_route)
+
+    from_place_id = route.from_place_id
+    to_place_id = route.to_place_id
+
+    db.session.commit()
+
+    for place_id in [from_place_id, to_place_id]:
+
+        remaining_routes = (
+            RouteCommission.query.filter(
+                (RouteCommission.from_place_id == place_id) |
+                (RouteCommission.to_place_id == place_id)
+            ).count()
+        )
+
+        if remaining_routes == 0:
+
+            place = Place.query.get(place_id)
+
+            if place:
+                db.session.delete(place)
+
+    db.session.commit()
+
+    log_activity(
+        current_user().username,
+        f"Deleted route #{route_id}"
+    )
+
+    return redirect(
+        url_for(
+            "admin.places"
+        )
     )
 
 

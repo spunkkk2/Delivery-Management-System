@@ -130,6 +130,7 @@ id="shopsTable">
 <th>الاسم</th>
 <th>الهاتف</th>
 <th>الطلبات</th>
+<th>خصم التوصيل</th>
 <th>ملاحظات</th>
 <th>إجراءات</th>
 
@@ -172,6 +173,16 @@ id="shopsTable">
 {{ shop.orders|length if shop.orders is defined else 0 }}
 
 </span>
+
+</td>
+
+<td>
+
+{% if shop.discount_ratio %}
+{{ "%.0f"|format(shop.discount_ratio) }}%
+{% else %}
+-
+{% endif %}
 
 </td>
 
@@ -287,6 +298,31 @@ class="form-control">
 name="notes"
 rows="4"
 class="form-control">{{ shop.notes }}</textarea>
+
+</div>
+
+<div class="mb-3">
+
+<label>
+
+نسبة خصم رسوم التوصيل (%)
+
+</label>
+
+<input
+type="number"
+name="discount_ratio"
+min="0"
+max="100"
+step="1"
+value="{{ shop.discount_ratio or 0 }}"
+class="form-control">
+
+<p class="form-text text-muted mb-0">
+
+يُطبَّق على رسوم التوصيل وعمولة السائق لطلبات هذا المحل
+
+</p>
 
 </div>
 
